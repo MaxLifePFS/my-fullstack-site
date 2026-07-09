@@ -182,6 +182,14 @@
         <span>Phone</span>
         <input type="tel" name="phone" placeholder="(555) 555-5555" required autocomplete="tel" pattern="[0-9()+\-\.\s]{7,20}">
       </label>
+      <label>
+        <span>Desired move-in date (optional)</span>
+        <input type="date" name="move_in">
+      </label>
+      <label>
+        <span>Message (optional)</span>
+        <textarea name="message" rows="3" placeholder="Anything you'd like us to know?"></textarea>
+      </label>
       <button type="submit" class="btn btn-green" id="leadSubmit">Send My Info</button>
       <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
       <p class="form-fine">We only use your info to contact you about Trinity Ranch Inn. No spam, ever.</p>
@@ -325,22 +333,43 @@ const PAY_CONFIG = {
   }
 })();
 
-// Lead form: submit via AJAX so the visitor stays on the page
+// Lead form: save to Supabase (primary), then email a notification (best effort)
+const SUPABASE_URL = 'https://niytsglwfjysorxtmwou.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xORj7_3fyYNVDqlpPIY6yA_CIbfUFs0';
 const leadForm = document.getElementById('leadForm');
 const formStatus = document.getElementById('formStatus');
 const leadSubmit = document.getElementById('leadSubmit');
 leadForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+  const fd = new FormData(leadForm);
+  if (fd.get('_honey')) return; // spam bot filled the honeypot
   leadSubmit.disabled = true;
   leadSubmit.textContent = 'Sending…';
   formStatus.textContent = '';
   try {
-    const res = await fetch('https://formsubmit.co/ajax/timmy.bao@gmail.com', {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/bookings', {
       method: 'POST',
-      headers: { 'Accept': 'application/json' },
-      body: new FormData(leadForm)
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        name: fd.get('name').trim(),
+        email: fd.get('email').trim(),
+        phone: fd.get('phone').trim(),
+        move_in: fd.get('move_in') || null,
+        message: (fd.get('message') || '').trim() || null
+      })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    // email notification — fire and forget, failure doesn't affect the visitor
+    fetch('https://formsubmit.co/ajax/timmy.bao@gmail.com', {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: fd
+    }).catch(() => {});
     leadForm.reset();
     formStatus.className = 'form-status ok';
     formStatus.textContent = '✓ Thank you! We received your info and will reach out shortly.';

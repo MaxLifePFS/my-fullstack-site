@@ -198,7 +198,8 @@ a { color: inherit; text-decoration: none; }
 }
 .lead-form label { display: grid; gap: 6px; }
 .lead-form label span { font-weight: 600; font-size: .9rem; color: var(--green-dark); }
-.lead-form input {
+.lead-form input,
+.lead-form textarea {
   font-family: var(--font-sans);
   font-size: 1rem;
   padding: 13px 16px;
@@ -206,9 +207,11 @@ a { color: inherit; text-decoration: none; }
   border-radius: 10px;
   background: var(--cream);
   color: var(--ink);
+  resize: vertical;
   transition: border-color .15s, box-shadow .15s;
 }
-.lead-form input:focus {
+.lead-form input:focus,
+.lead-form textarea:focus {
   outline: none;
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(46,93,67,.15);

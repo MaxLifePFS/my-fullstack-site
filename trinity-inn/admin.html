@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Trinity Ranch Inn — Booking Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<style>
+  :root {
+    --green: #2e5d43; --green-dark: #1f4230; --cream: #faf6ee;
+    --ink: #26251f; --muted: #6f6d63; --line: #e4dfd2;
+    --font-serif: 'Lora', Georgia, serif; --font-sans: 'Inter', system-ui, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-sans); background: var(--cream); color: var(--ink); min-height: 100vh; }
+  .topbar { background: var(--green-dark); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .topbar h1 { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; margin-right: auto; }
+  .topbar img { width: 30px; height: 30px; border-radius: 6px; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+  .btn { font-family: var(--font-sans); font-size: .88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: opacity .15s; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: var(--green-dark); }
+  .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
+  .btn-ghost:hover { border-color: #fff; }
+  .btn-line { background: #fff; color: var(--green-dark); border-color: var(--line); }
+  .btn-danger { background: #fff; color: #a4432e; border-color: #e6c8bf; }
+  .btn-danger:hover { background: #fbeeea; }
+
+  /* Login card */
+  .login-card { max-width: 380px; margin: 9vh auto 0; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 32px 28px; box-shadow: 0 10px 30px rgba(38,37,31,.08); display: grid; gap: 14px; }
+  .login-card h2 { font-family: var(--font-serif); color: var(--green-dark); font-size: 1.4rem; }
+  .login-card label { display: grid; gap: 6px; font-size: .88rem; font-weight: 600; color: var(--green-dark); }
+  .login-card input { font: inherit; padding: 11px 14px; border: 1.5px solid var(--line); border-radius: 9px; background: var(--cream); }
+  .login-card input:focus { outline: none; border-color: var(--green); background: #fff; }
+  .err { color: #a4432e; font-size: .88rem; font-weight: 600; min-height: 1.2em; }
+
+  /* Booking cards */
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .toolbar .count { font-size: .92rem; color: var(--muted); margin-right: auto; }
+  .toolbar select { font: inherit; font-size: .88rem; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; display: grid; gap: 10px; }
+  .card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .card-head .name { font-weight: 700; font-size: 1.05rem; }
+  .card-head .date { color: var(--muted); font-size: .82rem; margin-left: auto; }
+  .badge { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 10px; border-radius: 999px; }
+  .badge.new { background: #fdf3d7; color: #8a6d1a; }
+  .badge.contacted { background: #ddeafb; color: #2b5e9e; }
+  .badge.closed { background: #e5efe8; color: var(--green-dark); }
+  .contact { display: flex; gap: 16px; flex-wrap: wrap; font-size: .92rem; }
+  .contact a { color: var(--green); font-weight: 600; text-decoration: none; }
+  .contact a:hover { text-decoration: underline; }
+  .meta { font-size: .9rem; color: var(--ink); }
+  .meta b { color: var(--green-dark); }
+  .msg { font-size: .92rem; background: var(--cream); border-radius: 9px; padding: 10px 13px; white-space: pre-wrap; }
+  .row-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 12px; }
+  .row-actions select { font: inherit; font-size: .88rem; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: #fff; }
+  .row-actions .notes { flex: 1 1 200px; font: inherit; font-size: .88rem; padding: 7px 10px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--cream); }
+  .row-actions .notes:focus { outline: none; border-color: var(--green); background: #fff; }
+  .empty { text-align: center; color: var(--muted); padding: 50px 0; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="assets/favicon.png" alt="">
+  <h1>Trinity Ranch Inn — Bookings</h1>
+  <button class="btn btn-ghost hidden" id="refreshBtn">Refresh</button>
+  <button class="btn btn-ghost hidden" id="logoutBtn">Log out</button>
+</div>
+
+<!-- Login view -->
+<div class="wrap" id="loginView">
+  <form class="login-card" id="loginForm">
+    <h2>Admin Login</h2>
+    <label>Email <input type="email" id="loginEmail" value="timmy.bao@gmail.com" required autocomplete="username"></label>
+    <label>Password <input type="password" id="loginPassword" required autocomplete="current-password"></label>
+    <button type="submit" class="btn btn-green" id="loginBtn">Sign In</button>
+    <p class="err" id="loginErr"></p>
+  </form>
+</div>
+
+<!-- Bookings view -->
+<div class="wrap hidden" id="appView">
+  <div class="toolbar">
+    <span class="count" id="countLabel"></span>
+    <select id="statusFilter">
+      <option value="">All statuses</option>
+      <option value="new">New</option>
+      <option value="contacted">Contacted</option>
+      <option value="closed">Closed</option>
+    </select>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://niytsglwfjysorxtmwou.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xORj7_3fyYNVDqlpPIY6yA_CIbfUFs0';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const $ = (id) => document.getElementById(id);
+const loginView = $('loginView'), appView = $('appView');
+const refreshBtn = $('refreshBtn'), logoutBtn = $('logoutBtn');
+let rows = [];
+
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function showApp(loggedIn) {
+  loginView.classList.toggle('hidden', loggedIn);
+  appView.classList.toggle('hidden', !loggedIn);
+  refreshBtn.classList.toggle('hidden', !loggedIn);
+  logoutBtn.classList.toggle('hidden', !loggedIn);
+}
+
+async function load() {
+  const { data, error } = await db.from('bookings').select('*').order('created_at', { ascending: false });
+  if (error) { $('list').innerHTML = '<p class="empty">Error loading bookings: ' + esc(error.message) + '</p>'; return; }
+  rows = data;
+  render();
+}
+
+function render() {
+  const filter = $('statusFilter').value;
+  const shown = filter ? rows.filter(r => r.status === filter) : rows;
+  const newCount = rows.filter(r => r.status === 'new').length;
+  $('countLabel').textContent = rows.length + ' total · ' + newCount + ' new';
+  if (!shown.length) { $('list').innerHTML = '<p class="empty">No bookings' + (filter ? ' with this status' : ' yet') + '.</p>'; return; }
+  $('list').innerHTML = shown.map(r => `
+    <div class="card" data-id="${r.id}">
+      <div class="card-head">
+        <span class="name">${esc(r.name)}</span>
+        <span class="badge ${esc(r.status)}">${esc(r.status)}</span>
+        <span class="date">${new Date(r.created_at).toLocaleString()}</span>
+      </div>
+      <div class="contact">
+        <a href="mailto:${esc(r.email)}">✉ ${esc(r.email)}</a>
+        <a href="sms:${esc(r.phone)}">📱 ${esc(r.phone)}</a>
+      </div>
+      ${r.move_in ? '<p class="meta"><b>Move-in:</b> ' + esc(r.move_in) + '</p>' : ''}
+      ${r.message ? '<div class="msg">' + esc(r.message) + '</div>' : ''}
+      <div class="row-actions">
+        <select data-act="status">
+          <option value="new" ${r.status === 'new' ? 'selected' : ''}>New</option>
+          <option value="contacted" ${r.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+          <option value="closed" ${r.status === 'closed' ? 'selected' : ''}>Closed</option>
+        </select>
+        <input class="notes" data-act="notes" placeholder="Private notes…" value="${esc(r.notes)}">
+        <button class="btn btn-line" data-act="save">Save</button>
+        <button class="btn btn-danger" data-act="delete">Delete</button>
+      </div>
+    </div>`).join('');
+}
+
+$('list').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const card = btn.closest('.card');
+  const id = card.dataset.id;
+  if (btn.dataset.act === 'save') {
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const { error } = await db.from('bookings').update({
+      status: card.querySelector('[data-act="status"]').value,
+      notes: card.querySelector('[data-act="notes"]').value.trim() || null
+    }).eq('id', id);
+    btn.disabled = false; btn.textContent = error ? 'Error — retry' : 'Save';
+    if (!error) await load();
+  } else if (btn.dataset.act === 'delete') {
+    if (!confirm('Delete this booking permanently?')) return;
+    btn.disabled = true;
+    const { error } = await db.from('bookings').delete().eq('id', id);
+    if (error) { btn.disabled = false; alert('Delete failed: ' + error.message); return; }
+    await load();
+  }
+});
+
+$('statusFilter').addEventListener('change', render);
+refreshBtn.addEventListener('click', load);
+logoutBtn.addEventListener('click', async () => { await db.auth.signOut(); showApp(false); });
+
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = $('loginBtn');
+  btn.disabled = true; btn.textContent = 'Signing in…'; $('loginErr').textContent = '';
+  const { error } = await db.auth.signInWithPassword({
+    email: $('loginEmail').value.trim(),
+    password: $('loginPassword').value
+  });
+  btn.disabled = false; btn.textContent = 'Sign In';
+  if (error) { $('loginErr').textContent = error.message; return; }
+  showApp(true);
+  load();
+});
+
+// Already logged in from a previous visit?
+db.auth.getSession().then(({ data: { session } }) => {
+  if (session) { showApp(true); load(); }
+});
+</script>
+</body>
+</html>
