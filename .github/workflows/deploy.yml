@@ -1,0 +1,28 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - dir: dist
+            project: maxlife-academy
+          - dir: trinity-inn
+            project: trinity-ranch-inn
+          - dir: work-hub
+            project: bao-work-hub
+    name: Deploy ${{ matrix.project }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy ${{ matrix.dir }} to ${{ matrix.project }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ matrix.dir }} --project-name ${{ matrix.project }} --branch main
