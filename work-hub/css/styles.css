@@ -79,11 +79,11 @@ a { color: inherit; text-decoration: none; }
 .group { margin-bottom: 38px; }
 .group[hidden] { display: none; }
 .group h2 {
-  font-size: 1.08rem; font-weight: 700;
-  margin-bottom: 14px;
+  font-size: 1.6rem; font-weight: 700;
+  margin-bottom: 16px;
   display: flex; align-items: baseline; gap: 10px;
 }
-.group h2 small { font-size: .8rem; font-weight: 500; color: var(--muted); }
+.group h2 small { font-size: 1rem; font-weight: 500; color: var(--muted); }
 .tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
