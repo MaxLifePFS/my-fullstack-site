@@ -17,12 +17,18 @@ const BROWSER_TTL = 300; // seconds the visitor's browser keeps a copy
 
 export async function onRequestGet(context) {
   const cache = caches.default;
-  const cacheKey = new Request(new URL(context.request.url).origin + '/api/airbnb-bookings');
+  // v4: version suffix busts previously cached copies when this code changes
+  const cacheKey = new Request(new URL(context.request.url).origin + '/api/airbnb-bookings?v=4');
   const hit = await cache.match(cacheKey);
   if (hit) return hit;
 
   let feeds = {};
-  try { feeds = JSON.parse(context.env.AIRBNB_FEEDS || '{}'); } catch (e) { /* leave empty */ }
+  // Strip a possible byte-order mark (charCode 0xFEFF) and stray whitespace —
+  // secrets uploaded from Windows shells can arrive with either, and
+  // JSON.parse rejects a BOM.
+  let raw = (context.env.AIRBNB_FEEDS || '{}').trim();
+  while (raw.length && raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1).trim();
+  try { feeds = JSON.parse(raw); } catch (e) { /* leave empty */ }
 
   const bookings = [];
   const errors = [];
