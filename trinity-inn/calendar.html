@@ -72,9 +72,6 @@
   .bar.cut-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
   .bar.cut-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
   .bar .cont { opacity: .75; font-weight: 400; margin: 0 4px; }
-  /* Airbnb "not available" ranges: a thin strip along the bottom of the row
-     so they never hide real booking bars. */
-  .bar.blocked { height: 7px; align-self: end; margin-bottom: 3px; padding: 0; font-size: 0; opacity: .85; border-radius: 4px; }
 
   .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
 
@@ -125,7 +122,7 @@
   <div class="chart-card">
     <div class="chart-scroll" id="chart"></div>
   </div>
-  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes are saved automatically in this browser — download a CSV backup now and then, or tell Claude your changes to bake them into the page for every device. Red bars come straight from Airbnb and update automatically — edit those on Airbnb, not here (clicking one opens the reservation on Airbnb).</p>
+  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes are saved automatically in this browser — download a CSV backup now and then, or tell Claude your changes to bake them into the page for every device.</p>
 </div>
 
 <!-- Booking modal -->
@@ -208,42 +205,10 @@ function human(s) { return parse(s).toLocaleDateString(undefined, { weekday: 'sh
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 let bookings = load();
-let airbnb = [];          // live bookings from the Airbnb feeds — never edited or saved here
-let airbnbStatus = '';    // sync note shown in the chips row
 let editingId = null;
 const now = new Date();
 const todayStr = fmt(now);
 let view = { y: now.getFullYear(), m: now.getMonth() };
-
-const AIRBNB_COLOR = '#e0565b';   // reserved on Airbnb
-const BLOCKED_COLOR = '#a3a196';  // blocked/unavailable on Airbnb
-
-function allBookings() { return bookings.concat(airbnb); }
-
-async function fetchAirbnb() {
-  try {
-    const r = await fetch('api/airbnb-bookings');
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const data = await r.json();
-    airbnb = (data.bookings || []).map((b, i) => ({
-      id: 'ab' + i,
-      guest: b.kind === 'reserved' ? 'Airbnb' : 'Blocked',
-      room: b.room,
-      checkIn: b.checkIn,
-      checkOut: b.checkOut,
-      source: 'airbnb',
-      kind: b.kind,
-      url: b.url || null
-    })).filter(b => ROOMS.includes(b.room));
-    const t = data.updated ? new Date(data.updated) : new Date();
-    airbnbStatus = 'Airbnb synced ' + t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) +
-      (data.errors && data.errors.length ? ' (' + data.errors.length + ' room feed(s) unreachable)' : '');
-  } catch (e) {
-    airbnb = [];
-    airbnbStatus = 'Airbnb sync unavailable';
-  }
-  render();
-}
 
 function guestColors() {
   const order = [...bookings].sort((a, b) =>
@@ -254,17 +219,8 @@ function guestColors() {
   return map;
 }
 
-function barColor(b, colors) {
-  if (b.source === 'airbnb') return b.kind === 'reserved' ? AIRBNB_COLOR : BLOCKED_COLOR;
-  return colors[b.guest];
-}
-
 function conflict(room, cin, cout, ignoreId) {
-  // Manual bookings clash with other manual bookings and with real Airbnb
-  // reservations — but not with Airbnb "blocked" ranges, since hosts often
-  // block Airbnb precisely because a manually-entered guest is staying.
-  const candidates = bookings.concat(airbnb.filter(b => b.kind === 'reserved'));
-  return candidates.find(b => b.room === room && b.id !== ignoreId && cin < b.checkOut && cout > b.checkIn) || null;
+  return bookings.find(b => b.room === room && b.id !== ignoreId && cin < b.checkOut && cout > b.checkIn) || null;
 }
 
 function render() {
@@ -273,11 +229,10 @@ function render() {
 }
 
 function renderChips() {
-  const occupying = allBookings().filter(b => b.kind !== 'blocked');
-  const inHouse = occupying.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut)
+  const inHouse = bookings.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut)
     .sort((a, b) => ROOMS.indexOf(a.room) - ROOMS.indexOf(b.room));
-  const arrivals = occupying.filter(b => b.checkIn === todayStr).length;
-  const departures = occupying.filter(b => b.checkOut === todayStr).length;
+  const arrivals = bookings.filter(b => b.checkIn === todayStr).length;
+  const departures = bookings.filter(b => b.checkOut === todayStr).length;
   const colors = guestColors();
   const chips = $('chips');
   chips.innerHTML = '';
@@ -289,23 +244,12 @@ function renderChips() {
     arrivals + ' arrival' + (arrivals === 1 ? '' : 's') + ' · ' + departures + ' departure' + (departures === 1 ? '' : 's');
   chips.appendChild(stat);
 
-  if (airbnbStatus) {
-    const sync = document.createElement('span');
-    sync.className = 'chip';
-    const dot = document.createElement('span');
-    dot.className = 'dot';
-    dot.style.background = AIRBNB_COLOR;
-    sync.appendChild(dot);
-    sync.appendChild(document.createTextNode(airbnbStatus));
-    chips.appendChild(sync);
-  }
-
   for (const b of inHouse) {
     const c = document.createElement('span');
     c.className = 'chip';
     const dot = document.createElement('span');
     dot.className = 'dot';
-    dot.style.background = barColor(b, colors);
+    dot.style.background = colors[b.guest];
     c.appendChild(dot);
     c.appendChild(document.createTextNode(b.room + ': ' + b.guest + ' (until ' +
       parse(b.checkOut).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ')'));
@@ -364,34 +308,20 @@ function renderChart() {
       row.appendChild(cell);
     }
 
-    // Airbnb bars first, manual bookings after, so a manual bar is always
-    // drawn on top if the two overlap.
-    for (const b of airbnb.concat(bookings).filter(b => b.room === room && b.checkIn < monthEndExcl && b.checkOut > monthStart)) {
+    for (const b of bookings.filter(b => b.room === room && b.checkIn < monthEndExcl && b.checkOut > monthStart)) {
       const clippedStart = b.checkIn > monthStart ? parse(b.checkIn).getDate() : 1;
       const lastNight = addDays(parse(b.checkOut), -1);
       const clippedEnd = b.checkOut < monthEndExcl ? lastNight.getDate() : daysInMonth;
       const bar = document.createElement('button');
-      bar.className = 'bar' + (b.kind === 'blocked' ? ' blocked' : '') +
-        (b.checkIn < monthStart ? ' cut-left' : '') + (b.checkOut > monthEndExcl ? ' cut-right' : '');
+      bar.className = 'bar' + (b.checkIn < monthStart ? ' cut-left' : '') + (b.checkOut > monthEndExcl ? ' cut-right' : '');
       bar.style.gridColumn = (clippedStart + 1) + ' / span ' + (clippedEnd - clippedStart + 1);
-      bar.style.background = barColor(b, colors);
+      bar.style.background = colors[b.guest];
       const n = nightsBetween(b.checkIn, b.checkOut);
-      const who = b.source === 'airbnb' ? (b.kind === 'reserved' ? 'Airbnb booking' : 'Blocked on Airbnb') : b.guest;
-      bar.title = who + ' · ' + human(b.checkIn) + ' → ' + human(b.checkOut) + ' · ' + n + ' night' + (n === 1 ? '' : 's') +
-        (b.source === 'airbnb' ? ' · managed on Airbnb' : '');
+      bar.title = b.guest + ' · ' + human(b.checkIn) + ' → ' + human(b.checkOut) + ' · ' + n + ' night' + (n === 1 ? '' : 's');
       bar.innerHTML = (b.checkIn < monthStart ? '<span class="cont">&#8249;</span>' : '') +
         '<span>' + esc(b.guest) + '</span>' +
         (b.checkOut > monthEndExcl ? '<span class="cont">&#8250;</span>' : '');
-      if (b.source === 'airbnb') {
-        // Airbnb bars aren't editable here — clicking a reservation opens it
-        // on Airbnb (host must be logged in there to see details).
-        bar.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (b.url) window.open(b.url, '_blank', 'noopener');
-        });
-      } else {
-        bar.addEventListener('click', (e) => { e.stopPropagation(); openModal(b.id); });
-      }
+      bar.addEventListener('click', (e) => { e.stopPropagation(); openModal(b.id); });
       row.appendChild(bar);
     }
     chart.appendChild(row);
@@ -490,15 +420,14 @@ resetBtn.addEventListener('click', () => {
 
 // CSV in the same layout as the original Excel sheet: Date, Room 1 … Room C
 $('exportBtn').addEventListener('click', () => {
-  const merged = allBookings();
-  if (!merged.length) return;
-  let min = merged[0].checkIn, max = merged[0].checkOut;
-  for (const b of merged) { if (b.checkIn < min) min = b.checkIn; if (b.checkOut > max) max = b.checkOut; }
+  if (!bookings.length) return;
+  let min = bookings[0].checkIn, max = bookings[0].checkOut;
+  for (const b of bookings) { if (b.checkIn < min) min = b.checkIn; if (b.checkOut > max) max = b.checkOut; }
   const rows = [['Date', ...ROOMS].join(',')];
   for (let d = parse(min); fmt(d) < max; d = addDays(d, 1)) {
     const ds = fmt(d);
     const cells = ROOMS.map(r => {
-      const b = merged.find(x => x.room === r && x.checkIn <= ds && ds < x.checkOut);
+      const b = bookings.find(x => x.room === r && x.checkIn <= ds && ds < x.checkOut);
       return b ? '"' + b.guest.replace(/"/g, '""') + '"' : '';
     });
     rows.push([(d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear(), ...cells].join(','));
@@ -514,7 +443,6 @@ $('exportBtn').addEventListener('click', () => {
 $('todayLabel').textContent = 'Today: ' + now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
 render();
-fetchAirbnb();
 </script>
 </body>
 </html>
