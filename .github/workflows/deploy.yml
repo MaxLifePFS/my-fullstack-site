@@ -25,4 +25,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ${{ matrix.dir }} --project-name ${{ matrix.project }} --branch main
+          # Run from inside each site folder so wrangler picks up that
+          # site's functions/ directory (trinity-inn has one for /api).
+          workingDirectory: ${{ matrix.dir }}
+          command: pages deploy . --project-name ${{ matrix.project }} --branch main

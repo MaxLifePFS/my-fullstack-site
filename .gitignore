@@ -1,4 +1,6 @@
 .wrangler/
 .claude/settings.local.json
+.dev.vars
+**/.dev.vars
 Thumbs.db
 .DS_Store
