@@ -70,6 +70,7 @@
 <div class="topbar">
   <img src="assets/favicon.png" alt="">
   <h1>Trinity Ranch Inn — Bookings</h1>
+  <a class="btn btn-ghost hidden" id="calendarLink" href="calendar.html" style="text-decoration:none">Room Calendar</a>
   <button class="btn btn-ghost hidden" id="refreshBtn">Refresh</button>
   <button class="btn btn-ghost hidden" id="logoutBtn">Log out</button>
 </div>
@@ -119,6 +120,7 @@ function showApp(loggedIn) {
   appView.classList.toggle('hidden', !loggedIn);
   refreshBtn.classList.toggle('hidden', !loggedIn);
   logoutBtn.classList.toggle('hidden', !loggedIn);
+  document.getElementById('calendarLink').classList.toggle('hidden', !loggedIn);
 }
 
 async function load() {
