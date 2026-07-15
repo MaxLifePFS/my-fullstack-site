@@ -1,0 +1,8 @@
+name = "trinity-ranch-inn"
+pages_build_output_dir = "."
+compatibility_date = "2026-07-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "trinity-bookings"
+database_id = "3b847c5b-3519-4e1b-a222-bf4d5902596f"

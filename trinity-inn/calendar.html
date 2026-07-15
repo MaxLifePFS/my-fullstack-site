@@ -74,6 +74,7 @@
   .bar .cont { opacity: .75; font-weight: 400; margin: 0 4px; }
 
   .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
+  .banner { background: #fbeeea; border: 1px solid #e6c8bf; color: var(--danger); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: .9rem; font-weight: 600; }
 
   /* Modal */
   .overlay { position: fixed; inset: 0; z-index: 20; background: rgba(31, 66, 48, .45); display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -104,6 +105,7 @@
 </div>
 
 <div class="wrap">
+  <div class="banner hidden" id="errBanner"></div>
   <div class="chips" id="chips"></div>
 
   <div class="toolbar">
@@ -114,6 +116,7 @@
     </div>
     <button class="btn btn-line" id="todayBtn">Today</button>
     <span class="spacer"></span>
+    <button class="btn btn-line" id="refreshBtn">Refresh</button>
     <button class="btn btn-line" id="exportBtn">Download CSV</button>
     <button class="btn btn-green" id="addBtn">+ New booking</button>
   </div>
@@ -121,7 +124,7 @@
   <div class="chart-card">
     <div class="chart-scroll" id="chart"></div>
   </div>
-  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes are saved automatically in this browser — download a CSV backup now and then, or tell Claude your changes to bake them into the page for every device.</p>
+  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule, and updates from others appear within a minute (or click Refresh). Download a CSV backup now and then.</p>
 </div>
 
 <!-- Booking modal -->
@@ -162,37 +165,22 @@ const ROOMS = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5', 'Room A', 'Room
 const PALETTE = ['#2563eb', '#0d9488', '#d97706', '#dc2626', '#7c3aed',
                  '#db2777', '#059669', '#b45309', '#4f46e5', '#0891b2'];
 
-// Built-in bookings from the original Excel sheet. checkOut is the departure
-// day: the room is occupied through the night before, matching the sheet's
-// rows. The sheet was cut off at 9/3/2026, so open-ended stays (Carl, James,
-// Lewis, Lance) are set to depart 9/4 — extend them once real dates are known.
-const SEED = [
-  { id: 's1',  guest: 'Marlon', room: 'Room 1', checkIn: '2026-07-13', checkOut: '2026-07-26' },
-  { id: 's2',  guest: 'Andrew', room: 'Room 1', checkIn: '2026-08-01', checkOut: '2026-08-31' },
-  { id: 's3',  guest: 'Ryan',   room: 'Room 2', checkIn: '2026-07-13', checkOut: '2026-07-29' },
-  { id: 's4',  guest: 'Carl',   room: 'Room 2', checkIn: '2026-08-10', checkOut: '2026-09-04' },
-  { id: 's5',  guest: 'Issac',  room: 'Room 3', checkIn: '2026-07-13', checkOut: '2026-08-19' },
-  { id: 's6',  guest: 'James',  room: 'Room 4', checkIn: '2026-07-13', checkOut: '2026-09-04' },
-  { id: 's7',  guest: 'Anne',   room: 'Room 5', checkIn: '2026-07-13', checkOut: '2026-09-01' },
-  { id: 's8',  guest: 'Ethan',  room: 'Room A', checkIn: '2026-07-13', checkOut: '2026-09-01' },
-  { id: 's9',  guest: 'Lewis',  room: 'Room B', checkIn: '2026-07-13', checkOut: '2026-09-04' },
-  { id: 's10', guest: 'Lance',  room: 'Room C', checkIn: '2026-07-13', checkOut: '2026-09-04' }
-];
+// Bookings live in a shared Cloudflare D1 database behind /api/bookings, so
+// everyone with the link sees and edits the same schedule. The old per-browser
+// localStorage copy (key below) is uploaded once, automatically, if the shared
+// database is still empty — that migrates the owner's real schedule on his
+// first visit after this change.
+const LEGACY_STORE_KEY = 'trinity-room-bookings-v1';
 
-const STORE_KEY = 'trinity-room-bookings-v1';
-
-function load() {
+function legacyLocalBookings() {
   try {
-    const raw = localStorage.getItem(STORE_KEY);
+    const raw = localStorage.getItem(LEGACY_STORE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data) && data.length) return data;
     }
-  } catch (e) { /* fall through to seed */ }
-  return SEED.map(b => ({ ...b }));
-}
-function save() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(bookings)); } catch (e) { /* private mode */ }
+  } catch (e) { /* ignore */ }
+  return null;
 }
 
 const $ = (id) => document.getElementById(id);
@@ -203,11 +191,46 @@ function nightsBetween(a, b) { return Math.round((parse(b) - parse(a)) / 8640000
 function human(s) { return parse(s).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-let bookings = load();
+let bookings = [];
 let editingId = null;
 const now = new Date();
 const todayStr = fmt(now);
 let view = { y: now.getFullYear(), m: now.getMonth() };
+
+function showBanner(msg) { const b = $('errBanner'); b.textContent = msg; b.classList.remove('hidden'); }
+function hideBanner() { $('errBanner').classList.add('hidden'); }
+
+async function apiGet() {
+  const r = await fetch('api/bookings', { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return (await r.json()).bookings || [];
+}
+async function apiPost(body) {
+  const r = await fetch('api/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(data.error || ('HTTP ' + r.status)); e.status = r.status; e.conflict = data.conflict; throw e; }
+  return data.bookings || [];
+}
+
+async function loadFromServer() {
+  try {
+    let list = await apiGet();
+    if (list.length === 0) {
+      // Shared database is empty — migrate this browser's old local copy once.
+      const legacy = legacyLocalBookings();
+      if (legacy) list = await apiPost({ action: 'seed', bookings: legacy });
+    }
+    bookings = list;
+    hideBanner();
+  } catch (e) {
+    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection and click Refresh.');
+  }
+  render();
+}
 
 function guestColors() {
   const order = [...bookings].sort((a, b) =>
@@ -368,7 +391,7 @@ function updateNights() {
 $('fIn').addEventListener('change', updateNights);
 $('fOut').addEventListener('change', updateNights);
 
-$('saveBtn').addEventListener('click', () => {
+$('saveBtn').addEventListener('click', async () => {
   const guest = $('fGuest').value.trim();
   const room = $('fRoom').value, cin = $('fIn').value, cout = $('fOut').value;
   const fail = (msg) => { $('modalErr').textContent = msg; };
@@ -379,21 +402,37 @@ $('saveBtn').addEventListener('click', () => {
   if (clash) return fail(room + ' is already booked by ' + clash.guest + ' from ' +
     human(clash.checkIn) + ' to ' + human(clash.checkOut) + '. Choose another room or different dates.');
 
-  if (editingId) {
-    const b = bookings.find(x => x.id === editingId);
-    Object.assign(b, { guest, room, checkIn: cin, checkOut: cout });
-  } else {
-    const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'b' + Date.now();
-    bookings.push({ id, guest, room, checkIn: cin, checkOut: cout });
+  const btn = $('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    bookings = await apiPost({ action: 'upsert', booking: { id: editingId || undefined, guest, room, checkIn: cin, checkOut: cout } });
+    closeModal(); render();
+  } catch (e) {
+    if (e.status === 409 && e.conflict) {
+      fail(room + ' was just booked by ' + e.conflict.guest + ' from ' + human(e.conflict.checkIn) + ' to ' +
+        human(e.conflict.checkOut) + ' (someone else saved it first). Choose another room or different dates.');
+      loadFromServer();
+    } else {
+      fail('Could not save — check your internet connection and try again.');
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save booking';
   }
-  save(); closeModal(); render();
 });
 
-$('deleteBtn').addEventListener('click', () => {
+$('deleteBtn').addEventListener('click', async () => {
   const btn = $('deleteBtn');
   if (btn.textContent !== 'Confirm delete?') { btn.textContent = 'Confirm delete?'; return; }
-  bookings = bookings.filter(b => b.id !== editingId);
-  save(); closeModal(); render();
+  btn.disabled = true;
+  try {
+    bookings = await apiPost({ action: 'delete', id: editingId });
+    closeModal(); render();
+  } catch (e) {
+    $('modalErr').textContent = 'Could not delete — check your internet connection and try again.';
+    btn.textContent = 'Delete';
+  } finally {
+    btn.disabled = false;
+  }
 });
 
 $('cancelBtn').addEventListener('click', closeModal);
@@ -405,6 +444,7 @@ $('prevBtn').addEventListener('click', () => { view.m--; if (view.m < 0) { view.
 $('nextBtn').addEventListener('click', () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderChart(); });
 $('todayBtn').addEventListener('click', () => { view = { y: now.getFullYear(), m: now.getMonth() }; renderChart(); });
 $('addBtn').addEventListener('click', () => openModal(null));
+$('refreshBtn').addEventListener('click', loadFromServer);
 
 // CSV in the same layout as the original Excel sheet: Date, Room 1 … Room C
 $('exportBtn').addEventListener('click', () => {
@@ -431,6 +471,9 @@ $('exportBtn').addEventListener('click', () => {
 $('todayLabel').textContent = 'Today: ' + now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
 render();
+loadFromServer();
+// Pick up other people's changes automatically while the page is open.
+setInterval(() => { if (!overlay.classList.contains('open')) loadFromServer(); }, 60000);
 </script>
 </body>
 </html>
