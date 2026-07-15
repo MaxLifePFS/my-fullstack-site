@@ -115,7 +115,6 @@
     <button class="btn btn-line" id="todayBtn">Today</button>
     <span class="spacer"></span>
     <button class="btn btn-line" id="exportBtn">Download CSV</button>
-    <button class="btn btn-line" id="resetBtn">Reset to original data</button>
     <button class="btn btn-green" id="addBtn">+ New booking</button>
   </div>
 
@@ -406,17 +405,6 @@ $('prevBtn').addEventListener('click', () => { view.m--; if (view.m < 0) { view.
 $('nextBtn').addEventListener('click', () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderChart(); });
 $('todayBtn').addEventListener('click', () => { view = { y: now.getFullYear(), m: now.getMonth() }; renderChart(); });
 $('addBtn').addEventListener('click', () => openModal(null));
-
-const resetBtn = $('resetBtn');
-resetBtn.addEventListener('click', () => {
-  if (resetBtn.textContent !== 'Confirm reset?') {
-    resetBtn.textContent = 'Confirm reset?';
-    setTimeout(() => { resetBtn.textContent = 'Reset to original data'; }, 3000);
-    return;
-  }
-  bookings = SEED.map(b => ({ ...b }));
-  save(); resetBtn.textContent = 'Reset to original data'; render();
-});
 
 // CSV in the same layout as the original Excel sheet: Date, Room 1 … Room C
 $('exportBtn').addEventListener('click', () => {
