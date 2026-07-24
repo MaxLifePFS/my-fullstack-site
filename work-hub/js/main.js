@@ -16,7 +16,8 @@ const GROUPS = [
       { name: 'F&G SalesLink', url: 'https://saleslink.fglife.com/' },
       { name: 'Athene Producer', url: 'https://www.athene.com/producer/login' },
       { name: 'Allianz Life', url: 'https://www.allianzlife.com/login' },
-      { name: 'My Book — Unlearn to Earn', url: 'https://sites.google.com/view/unlearntoearn' }
+      { name: 'My Book — Unlearn to Earn', url: 'https://sites.google.com/view/unlearntoearn' },
+      { name: 'MaxLife Strategy', url: 'https://hub.maxlife.cc/img/maxlife-strategy.png' }
     ]
   },
   {
