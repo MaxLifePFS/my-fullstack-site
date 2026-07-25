@@ -81,6 +81,8 @@ a { color: inherit; text-decoration: none; }
 .group h2 {
   font-size: 1.6rem; font-weight: 700;
   margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 4px solid var(--accent);
   display: flex; align-items: baseline; gap: 10px;
 }
 .group h2 small { font-size: 1rem; font-weight: 500; color: var(--muted); }
