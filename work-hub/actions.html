@@ -114,7 +114,7 @@ section h2 small { font-weight: 500; color: var(--muted); font-size: .85rem; }
 #searchBox {
   width: 100%; font-family: var(--font); font-size: .95rem; color: var(--ink);
   background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px;
-  padding: 10px 16px; outline: none; margin-bottom: 14px;
+  padding: 10px 16px; outline: none; margin-top: 10px;
   transition: border-color .15s, box-shadow .15s;
 }
 #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.18); }
@@ -152,7 +152,6 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 34px; text-align: ce
   </div>
 
   <div class="container">
-    <input type="search" id="searchBox" placeholder="Search actions… ( / to focus, Esc clears — searches active + done )" autocomplete="off" spellcheck="false">
     <p id="msg"></p>
     <section id="activeSection">
       <h2>Active <small id="activeCount"></small></h2>
@@ -162,6 +161,7 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 34px; text-align: ce
       <h2>Done <small id="doneCount"></small></h2>
       <div id="doneList"></div>
     </section>
+    <input type="search" id="searchBox" placeholder="Search actions… ( / to focus, Esc clears — searches active + done )" autocomplete="off" spellcheck="false">
   </div>
 </main>
 
