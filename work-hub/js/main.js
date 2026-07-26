@@ -28,7 +28,7 @@ const GROUPS = [
     links: [
       { name: 'Airbnb Multicalendar', url: 'https://www.airbnb.com/multicalendar' },
       { name: 'Trinity Ranch Inn (Greenville)', url: 'https://trinity.maxlife.cc' },
-      { name: 'Bottlebrush + Greenhaven + Kirby', url: 'https://www.airbnb.com/users/show/216674639' },
+      { name: 'Bottlebrush + Greenhaven + Kirby', url: 'https://maxlife.cc/flexstay' },
       { name: 'Realty Invest', url: 'https://learn.yongmingu.com/' },
       { name: 'Trinity C1 — Capital One', url: 'https://verified.capitalone.com/auth/signin' },
       { name: 'Nanxiang 南翔', url: 'https://sites.google.com/view/bao-all' },
