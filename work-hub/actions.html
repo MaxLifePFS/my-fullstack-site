@@ -111,6 +111,15 @@ section h2 small { font-weight: 500; color: var(--muted); font-size: .85rem; }
 .editform .save { background: var(--accent); color: #06263a; font-weight: 700; border: none; cursor: pointer; }
 .editform .cancel { cursor: pointer; }
 
+#searchBox {
+  width: 100%; font-family: var(--font); font-size: .95rem; color: var(--ink);
+  background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 12px;
+  padding: 10px 16px; outline: none; margin-bottom: 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+#searchBox:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.18); }
+#searchBox::placeholder { color: #55688f; }
+
 .empty { color: var(--muted); font-size: .9rem; background: var(--bg-2); border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px 18px; }
 #msg { text-align: center; color: var(--muted); font-size: .85rem; min-height: 1.3em; margin-bottom: 10px; }
 #msg.err { color: var(--red); }
@@ -143,6 +152,7 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 34px; text-align: ce
   </div>
 
   <div class="container">
+    <input type="search" id="searchBox" placeholder="Search actions… ( / to focus, Esc clears — searches active + done )" autocomplete="off" spellcheck="false">
     <p id="msg"></p>
     <section id="activeSection">
       <h2>Active <small id="activeCount"></small></h2>
@@ -169,6 +179,7 @@ const STATUS_OPTS = [
 ];
 let items = [];
 let editingId = null;
+let query = '';
 
 const msg = document.getElementById('msg');
 function setMsg(t, err) { msg.textContent = t || ''; msg.className = err ? 'err' : ''; }
@@ -293,15 +304,23 @@ function itemRow(it) {
   return row;
 }
 
+function matchesQuery(it) {
+  if (!query) return true;
+  const hay = (it.title + ' ' + (it.notes || '') + ' ' + (it.priority || '') + ' ' +
+    (it.added || '') + ' ' + (it.due || '') + ' ' + (it.completedAt || '')).toLowerCase();
+  return query.toLowerCase().split(/\s+/).every(w => hay.includes(w));
+}
+
 function render() {
-  const active = items.filter(i => i.status !== 'done');
-  const done = items.filter(i => i.status === 'done');
+  const shown = items.filter(matchesQuery);
+  const active = shown.filter(i => i.status !== 'done');
+  const done = shown.filter(i => i.status === 'done');
   const activeList = document.getElementById('activeList');
   const doneList = document.getElementById('doneList');
   activeList.innerHTML = ''; doneList.innerHTML = '';
-  if (active.length === 0) activeList.innerHTML = '<p class="empty">Nothing active — add something above 🎉</p>';
+  if (active.length === 0) activeList.innerHTML = '<p class="empty">' + (query ? 'No active actions match "' + esc(query) + '".' : 'Nothing active — add something above 🎉') + '</p>';
   active.forEach(it => activeList.appendChild(itemRow(it)));
-  if (done.length === 0) doneList.innerHTML = '<p class="empty">Nothing completed yet.</p>';
+  if (done.length === 0) doneList.innerHTML = '<p class="empty">' + (query ? 'No completed actions match "' + esc(query) + '".' : 'Nothing completed yet.') + '</p>';
   done.forEach(it => doneList.appendChild(itemRow(it)));
   document.getElementById('activeCount').textContent = active.length ? active.length + ' item' + (active.length > 1 ? 's' : '') : '';
   document.getElementById('doneCount').textContent = done.length ? done.length + ' item' + (done.length > 1 ? 's' : '') : '';
@@ -325,6 +344,19 @@ function addItem() {
 }
 document.getElementById('addBtn').addEventListener('click', addItem);
 document.getElementById('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+// ---- search ----
+const searchBox = document.getElementById('searchBox');
+searchBox.addEventListener('input', () => { query = searchBox.value.trim(); render(); });
+searchBox.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { searchBox.value = ''; query = ''; render(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchBox &&
+      !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+    e.preventDefault(); searchBox.focus();
+  }
+});
 
 load();
 setInterval(() => { if (editingId === null) load(); }, 60000);
