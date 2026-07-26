@@ -84,6 +84,7 @@ const GROUPS = [
     links: [
       { name: 'Gmail', url: 'https://mail.google.com' },
       { name: 'Google Voice', url: 'https://voice.google.com/u/0/messages' },
+      { name: 'Action Tracker', url: 'https://hub.maxlife.cc/actions.html' },
       { name: 'Google Calendar', url: 'https://calendar.google.com' },
       { name: 'Calendly', url: 'https://calendly.com/app/login' },
       { name: 'Google Drive', url: 'https://drive.google.com/drive/u/0/home' },

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action Tracker — Tim's Work Hub</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230f172a'/><text x='50' y='72' font-size='60' text-anchor='middle'>✅</text></svg>">
+<style>
+:root {
+  --bg: #0f172a; --bg-2: #131c33; --card: #1a2440; --card-hover: #223055;
+  --line: #263455; --ink: #e2e8f0; --muted: #8fa3c4;
+  --accent: #38bdf8; --accent-2: #7dd3fc; --gold: #fbbf24;
+  --red: #f87171; --green: #4ade80; --radius: 14px;
+  --font: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font);
+  background:
+    radial-gradient(1000px 500px at 90% -10%, rgba(56,189,248,.10), transparent 60%),
+    var(--bg);
+  color: var(--ink); line-height: 1.5; min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+.container { max-width: 860px; margin: 0 auto; padding: 0 18px; }
+
+header {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(15,23,42,.9); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line); padding: 16px 0;
+}
+.header-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+h1 { font-size: 1.35rem; font-weight: 800; }
+.back { color: var(--muted); font-size: .85rem; font-weight: 600; }
+.back:hover { color: var(--accent-2); }
+
+main { padding: 22px 0 70px; }
+
+/* ---- add form ---- */
+.addbox {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; margin: 0 18px 22px; max-width: 824px;
+}
+@media (min-width: 900px) { .addbox { margin: 0 auto 22px; } }
+.addrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.addrow input, .addrow select, .addrow button, .editform input, .editform select, .editform textarea, .editform button {
+  font-family: var(--font); font-size: .92rem; color: var(--ink);
+  background: var(--bg-2); border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 9px 12px; outline: none;
+}
+.addrow input:focus, .editform input:focus, .editform textarea:focus, .addrow select:focus, .editform select:focus {
+  border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+}
+#newTitle { flex: 1 1 260px; }
+#newPriority { flex: 0 0 auto; }
+#newDue { flex: 0 0 auto; color-scheme: dark; }
+#addBtn {
+  background: var(--accent); color: #06263a; font-weight: 700; border: none;
+  cursor: pointer; padding: 9px 20px;
+}
+#addBtn:hover { background: var(--accent-2); }
+
+/* ---- sections ---- */
+section { margin-bottom: 30px; }
+section h2 {
+  font-size: 1.1rem; font-weight: 700; margin-bottom: 10px;
+  padding-bottom: 6px; border-bottom: 3px solid var(--accent);
+  display: flex; align-items: baseline; gap: 8px;
+}
+section h2 small { font-weight: 500; color: var(--muted); font-size: .85rem; }
+#doneSection h2 { border-bottom-color: var(--green); }
+
+.item {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 12px 14px; margin-bottom: 8px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.item.done { opacity: .65; }
+.item select.status {
+  font-family: var(--font); font-size: .95rem;
+  background: var(--bg-2); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px; padding: 5px 4px;
+  cursor: pointer; flex: 0 0 auto;
+}
+.item .body { flex: 1 1 auto; min-width: 0; }
+.item .title { font-weight: 600; font-size: .98rem; overflow-wrap: anywhere; }
+.item.done .title { text-decoration: line-through; }
+.item .meta { color: var(--muted); font-size: .78rem; margin-top: 2px; display: flex; flex-wrap: wrap; gap: 10px; }
+.item .meta .pri-High { color: var(--red); font-weight: 700; }
+.item .meta .pri-Med { color: var(--gold); font-weight: 600; }
+.item .meta .overdue { color: var(--red); font-weight: 700; }
+.item .notes { color: var(--muted); font-size: .85rem; margin-top: 4px; overflow-wrap: anywhere; }
+.item .btns { display: flex; gap: 6px; flex: 0 0 auto; }
+.item .btns button {
+  background: none; border: 1px solid transparent; border-radius: 8px;
+  font-size: .95rem; cursor: pointer; padding: 4px 7px; color: var(--muted);
+}
+.item .btns button:hover { border-color: var(--line); background: var(--bg-2); color: var(--ink); }
+
+/* ---- inline edit ---- */
+.editform { display: flex; flex-direction: column; gap: 8px; flex: 1 1 auto; }
+.editform .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.editform input[type=text] { flex: 1 1 220px; }
+.editform input[type=date] { color-scheme: dark; }
+.editform textarea { resize: vertical; min-height: 40px; }
+.editform .save { background: var(--accent); color: #06263a; font-weight: 700; border: none; cursor: pointer; }
+.editform .cancel { cursor: pointer; }
+
+.empty { color: var(--muted); font-size: .9rem; background: var(--bg-2); border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px 18px; }
+#msg { text-align: center; color: var(--muted); font-size: .85rem; min-height: 1.3em; margin-bottom: 10px; }
+#msg.err { color: var(--red); }
+
+footer { border-top: 1px solid var(--line); padding: 20px 0 34px; text-align: center; color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container header-row">
+    <h1>✅ Action Tracker <small style="font-weight:500;color:var(--muted);font-size:.85rem">行动清单</small></h1>
+    <a class="back" href="index.html">← Back to Hub</a>
+  </div>
+</header>
+
+<main>
+  <div class="addbox">
+    <div class="addrow">
+      <input type="text" id="newTitle" placeholder="New action… (Enter to add)" maxlength="200" autocomplete="off">
+      <select id="newPriority">
+        <option value="">Priority</option>
+        <option value="High">High</option>
+        <option value="Med">Med</option>
+        <option value="Low">Low</option>
+      </select>
+      <input type="date" id="newDue" title="Due date (optional)">
+      <button id="addBtn">Add</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <p id="msg"></p>
+    <section id="activeSection">
+      <h2>Active <small id="activeCount"></small></h2>
+      <div id="activeList"></div>
+    </section>
+    <section id="doneSection">
+      <h2>Done <small id="doneCount"></small></h2>
+      <div id="doneList"></div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="container">Shared list — changes save instantly for every device · auto-refreshes every 60s</div>
+</footer>
+
+<script>
+const API = '/api/actions';
+const STATUS_OPTS = [
+  ['todo',  '🔴 Not started'],
+  ['doing', '🟡 In progress'],
+  ['hold',  '⏸️ On hold'],
+  ['done',  '🟢 Done']
+];
+let items = [];
+let editingId = null;
+
+const msg = document.getElementById('msg');
+function setMsg(t, err) { msg.textContent = t || ''; msg.className = err ? 'err' : ''; }
+
+async function load() {
+  try {
+    const r = await fetch(API, { cache: 'no-store' });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || r.status);
+    items = data.actions;
+    render();
+    setMsg('');
+  } catch (e) { setMsg('Could not load the list — ' + e.message, true); }
+}
+
+async function post(payload) {
+  try {
+    setMsg('Saving…');
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || r.status);
+    items = data.actions;
+    editingId = null;
+    render();
+    setMsg('');
+  } catch (e) { setMsg('Save failed — ' + e.message, true); }
+}
+
+function esc(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function metaHtml(it) {
+  const parts = [];
+  if (it.priority) parts.push('<span class="pri-' + esc(it.priority) + '">' + esc(it.priority) + '</span>');
+  if (it.added) parts.push('added ' + esc(it.added));
+  if (it.due && it.status !== 'done') {
+    const overdue = it.due < new Date().toISOString().slice(0, 10);
+    parts.push('<span class="' + (overdue ? 'overdue' : '') + '">due ' + esc(it.due) + (overdue ? ' ⚠' : '') + '</span>');
+  }
+  if (it.status === 'done' && it.completedAt) parts.push('done ' + esc(it.completedAt));
+  return parts.join(' · ');
+}
+
+function statusSelect(it) {
+  const sel = document.createElement('select');
+  sel.className = 'status';
+  sel.title = 'Change status';
+  STATUS_OPTS.forEach(([v, label]) => {
+    const o = document.createElement('option');
+    o.value = v; o.textContent = label.split(' ')[0];
+    o.title = label;
+    if (v === it.status) o.selected = true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', () => {
+    post({ action: 'upsert', item: { ...it, status: sel.value } });
+  });
+  return sel;
+}
+
+function editForm(it) {
+  const form = document.createElement('div');
+  form.className = 'editform';
+  form.innerHTML =
+    '<div class="row"><input type="text" class="e-title" maxlength="200" value="' + esc(it.title) + '"></div>' +
+    '<div class="row">' +
+      '<select class="e-priority"><option value="">Priority</option><option>High</option><option>Med</option><option>Low</option></select>' +
+      '<input type="date" class="e-due" value="' + esc(it.due) + '">' +
+    '</div>' +
+    '<div class="row"><textarea class="e-notes" maxlength="500" placeholder="Notes…">' + esc(it.notes) + '</textarea></div>' +
+    '<div class="row"><button class="save">Save</button><button class="cancel">Cancel</button></div>';
+  form.querySelector('.e-priority').value = it.priority || '';
+  form.querySelector('.e-notes').style.width = '100%';
+  form.querySelector('.save').addEventListener('click', () => {
+    const title = form.querySelector('.e-title').value.trim();
+    if (!title) { setMsg('Title cannot be empty', true); return; }
+    post({ action: 'upsert', item: {
+      id: it.id, status: it.status, title,
+      priority: form.querySelector('.e-priority').value,
+      due: form.querySelector('.e-due').value,
+      notes: form.querySelector('.e-notes').value
+    }});
+  });
+  form.querySelector('.cancel').addEventListener('click', () => { editingId = null; render(); });
+  return form;
+}
+
+function itemRow(it) {
+  const row = document.createElement('div');
+  row.className = 'item' + (it.status === 'done' ? ' done' : '');
+  row.appendChild(statusSelect(it));
+
+  if (editingId === it.id) {
+    row.appendChild(editForm(it));
+    return row;
+  }
+
+  const body = document.createElement('div');
+  body.className = 'body';
+  body.innerHTML = '<div class="title">' + esc(it.title) + '</div>' +
+    '<div class="meta">' + metaHtml(it) + '</div>' +
+    (it.notes ? '<div class="notes">' + esc(it.notes) + '</div>' : '');
+  row.appendChild(body);
+
+  const btns = document.createElement('div');
+  btns.className = 'btns';
+  const edit = document.createElement('button');
+  edit.textContent = '✏️'; edit.title = 'Edit';
+  edit.addEventListener('click', () => { editingId = it.id; render(); });
+  const del = document.createElement('button');
+  del.textContent = '🗑️'; del.title = 'Delete';
+  del.addEventListener('click', () => {
+    if (confirm('Delete "' + it.title + '"?')) post({ action: 'delete', id: it.id });
+  });
+  btns.appendChild(edit); btns.appendChild(del);
+  row.appendChild(btns);
+  return row;
+}
+
+function render() {
+  const active = items.filter(i => i.status !== 'done');
+  const done = items.filter(i => i.status === 'done');
+  const activeList = document.getElementById('activeList');
+  const doneList = document.getElementById('doneList');
+  activeList.innerHTML = ''; doneList.innerHTML = '';
+  if (active.length === 0) activeList.innerHTML = '<p class="empty">Nothing active — add something above 🎉</p>';
+  active.forEach(it => activeList.appendChild(itemRow(it)));
+  if (done.length === 0) doneList.innerHTML = '<p class="empty">Nothing completed yet.</p>';
+  done.forEach(it => doneList.appendChild(itemRow(it)));
+  document.getElementById('activeCount').textContent = active.length ? active.length + ' item' + (active.length > 1 ? 's' : '') : '';
+  document.getElementById('doneCount').textContent = done.length ? done.length + ' item' + (done.length > 1 ? 's' : '') : '';
+}
+
+// ---- add ----
+function addItem() {
+  const titleEl = document.getElementById('newTitle');
+  const title = titleEl.value.trim();
+  if (!title) return;
+  post({ action: 'upsert', item: {
+    title, status: 'todo',
+    priority: document.getElementById('newPriority').value,
+    due: document.getElementById('newDue').value,
+    notes: ''
+  }});
+  titleEl.value = '';
+  document.getElementById('newPriority').value = '';
+  document.getElementById('newDue').value = '';
+  titleEl.focus();
+}
+document.getElementById('addBtn').addEventListener('click', addItem);
+document.getElementById('newTitle').addEventListener('keydown', e => { if (e.key === 'Enter') addItem(); });
+
+load();
+setInterval(() => { if (editingId === null) load(); }, 60000);
+</script>
+</body>
+</html>
