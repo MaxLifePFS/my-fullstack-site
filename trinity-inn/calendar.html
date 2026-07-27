@@ -14,6 +14,7 @@
     --green: #2e5d43; --green-dark: #1f4230; --cream: #faf6ee;
     --ink: #26251f; --muted: #6f6d63; --line: #e4dfd2;
     --today-bg: rgba(46, 93, 67, 0.09); --weekend: rgba(38, 37, 31, 0.035);
+    --today-col: rgba(202, 138, 4, 0.30); --today-strong: #a16207;
     --danger: #a4432e;
     --font-serif: 'Lora', Georgia, serif; --font-sans: 'Inter', system-ui, sans-serif;
   }
@@ -60,12 +61,13 @@
   .day-head { grid-row: 1; text-align: center; padding: 7px 0 6px; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums; }
   .day-head .dow { display: block; font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
   .day-head .num { display: block; font-size: .85rem; font-weight: 600; margin-top: 1px; }
-  .day-head.today .num { background: var(--green); color: #fff; border-radius: 999px; width: 22px; line-height: 22px; margin: 1px auto 0; }
+  .day-head.today .num { background: var(--today-strong); color: #fff; border-radius: 999px; width: 22px; line-height: 22px; margin: 1px auto 0; }
   .body-row { border-top: 1px solid var(--line); height: 46px; }
   .day-cell { grid-row: 1; border-left: 1px solid var(--line); cursor: pointer; }
   .day-cell:hover { background: var(--today-bg); }
   .weekend { background: var(--weekend); }
-  .day-cell.todaycol, .day-head.today { background: var(--today-bg); }
+  .day-cell.todaycol, .day-head.today { background: var(--today-col); }
+  .day-cell.todaycol:hover { background: var(--today-col); filter: brightness(1.05); }
 
   .bar { grid-row: 1; z-index: 2; align-self: center; height: 32px; margin: 0 2px; padding: 0 10px; border-radius: 8px; border: none; display: flex; align-items: center; overflow: hidden; color: #fff; font-size: .84rem; font-weight: 600; white-space: nowrap; cursor: pointer; text-align: left; font-family: var(--font-sans); }
   .bar:hover { filter: brightness(1.12); }
