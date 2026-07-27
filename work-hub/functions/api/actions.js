@@ -15,7 +15,8 @@ function json(data, status = 200) {
 }
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  // Calendar date in US Central Time (en-CA locale formats as YYYY-MM-DD)
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
 }
 
 async function allActions(db) {

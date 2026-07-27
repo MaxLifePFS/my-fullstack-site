@@ -231,7 +231,8 @@ function metaHtml(it) {
   if (it.priority) parts.push('<span class="pri-' + esc(it.priority) + '">' + esc(it.priority) + '</span>');
   if (it.added) parts.push('added ' + esc(it.added));
   if (it.due && it.status !== 'done') {
-    const overdue = it.due < new Date().toISOString().slice(0, 10);
+    const todayCT = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
+    const overdue = it.due < todayCT;
     parts.push('<span class="' + (overdue ? 'overdue' : '') + '">due ' + esc(it.due) + (overdue ? ' ⚠' : '') + '</span>');
   }
   if (it.status === 'done' && it.completedAt) parts.push('done ' + esc(it.completedAt));
