@@ -11,6 +11,9 @@ jobs:
     strategy:
       matrix:
         include:
+          # www/ is the main business site served at maxlife.cc
+          - dir: www
+            project: maxlife-www
           - dir: dist
             project: maxlife-academy
           - dir: trinity-inn

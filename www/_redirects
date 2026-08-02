@@ -1,0 +1,22 @@
+# Cloudflare Pages redirects for maxlife.cc
+#
+# The previous maxlife.cc site (the opc-onepager Next.js Worker) moved to
+# main.maxlife.cc. /flexstay lived inside that app and is linked from the
+# work hub, so keep the old URL working.
+# 302 while the cutover settles; switch to 301 once it is confirmed stable.
+/flexstay      https://main.maxlife.cc/flexstay          302
+/flexstay/*    https://main.maxlife.cc/flexstay/:splat    302
+
+# Old Google Sites paths -> new structure
+/view/maxfund            /            301
+/view/maxfund/home       /            301
+/view/maxfund/education  /education/  301
+/view/maxfund/service    /services/   301
+/view/maxfund/product    /products/   301
+/view/maxfund/franchise  /franchise/  301
+/view/maxfund/faq        /faq/        301
+
+# Convenience aliases
+/service   /services/   301
+/product   /products/   301
+/contact   /faq/        301

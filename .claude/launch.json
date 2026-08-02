@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8317"],
       "port": 8317
+    },
+    {
+      "name": "maxlife-www",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "8318", "--directory", "www"],
+      "port": 8318
     }
   ]
 }
