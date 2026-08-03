@@ -8,7 +8,7 @@ const GROUPS = [
     zh: '万福财务事务所 · 财商学堂',
     icon: '🎓',
     links: [
-      { name: 'PFS — MaxLife Academy', url: 'https://academy.maxlife.cc' },
+      { name: 'MaxLife Academy', url: 'https://maxlife.cc' },
       { name: 'ACN Essential Services', url: 'https://pfs.acnibo.com/us-en/services' },
       { name: 'ACN IBO Portal', url: 'https://myacn.my.site.com/ACNIBO/s/login/?language=en_US' },
       { name: 'NS', url: 'https://www.nsfed.app' },
