@@ -26,7 +26,7 @@ const GROUPS = [
     zh: '灵活民宿 · 地产投资',
     icon: '🏡',
     links: [
-      { name: 'Trinity Ranch Inn (Greenville)', url: 'https://trinity.maxlife.cc' },
+      { name: 'Trinity Ranch Room Calendar', url: 'https://trinity.maxlife.cc/calendar' },
       { name: 'FlexStay Room Calendar', url: 'https://maxlife.cc/flexstay' },
       { name: 'Realty Invest', url: 'https://learn.yongmingu.com/' },
       { name: 'Trinity C1 — Capital One', url: 'https://verified.capitalone.com/auth/signin' },
