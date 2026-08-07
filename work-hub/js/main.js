@@ -1,5 +1,6 @@
 // ===== Tim's Work Hub — data & rendering =====
 // To add/remove/reorder links, edit GROUPS below and redeploy. Nothing else to touch.
+// A link's subtitle is its hostname; add `host: '...'` to show something else.
 
 const GROUPS = [
   {
@@ -27,7 +28,7 @@ const GROUPS = [
     icon: '🏡',
     links: [
       { name: 'Trinity Ranch Room Calendar', url: 'https://trinity.maxlife.cc/calendar' },
-      { name: 'FlexStay Room Calendar', url: 'https://maxlife.cc/flexstay' },
+      { name: 'FlexStay Room Calendar', url: 'https://maxlife.cc/flexstay', host: 'flexstay.maxlife.cc' },
       { name: 'Realty Invest', url: 'https://learn.yongmingu.com/' },
       { name: 'Trinity C1 — Capital One', url: 'https://verified.capitalone.com/auth/signin' },
       { name: 'Nanxiang 南翔', url: 'https://sites.google.com/view/bao-all' },
@@ -133,7 +134,7 @@ GROUPS.forEach((g) => {
     a.innerHTML =
       '<span class="tile-icon"><img src="' + faviconFor(l.url) + '" alt="" loading="lazy"><i>' + letter + '</i></span>' +
       '<span class="tile-name">' + l.name + '</span>' +
-      '<span class="tile-host">' + new URL(l.url).hostname.replace('www.', '') + '</span>';
+      '<span class="tile-host">' + (l.host || new URL(l.url).hostname.replace('www.', '')) + '</span>';
     a.querySelector('img').addEventListener('error', function () { this.style.display = 'none'; });
     a.querySelector('img').addEventListener('load', function () { this.nextElementSibling.style.display = 'none'; });
     grid.appendChild(a);
