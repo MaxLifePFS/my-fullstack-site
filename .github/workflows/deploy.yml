@@ -23,6 +23,21 @@ jobs:
     name: Deploy ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v4
+      # Pages caches assets for 4h and ignores Cache-Control from _headers,
+      # so a deploy alone does not retire the old js/css. Renaming each file
+      # after its own contents gives every deploy a URL that was never
+      # cached. Only the checkout is touched; the repo keeps plain names so
+      # the files stay editable and previewable as-is.
+      - name: Fingerprint assets
+        if: matrix.dir == 'work-hub'
+        working-directory: ${{ matrix.dir }}
+        run: |
+          js=$(sha256sum js/main.js | cut -c1-10)
+          css=$(sha256sum css/styles.css | cut -c1-10)
+          mv js/main.js "js/main.$js.js"
+          mv css/styles.css "css/styles.$css.css"
+          sed -i "s|js/main\.js|js/main.$js.js|g; s|css/styles\.css|css/styles.$css.css|g" index.html
+          grep -E 'main\.|styles\.' index.html
       - name: Deploy ${{ matrix.dir }} to ${{ matrix.project }}
         uses: cloudflare/wrangler-action@v3
         with:
