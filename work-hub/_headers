@@ -1,0 +1,15 @@
+# Cloudflare Pages response headers.
+#
+# js/ and css/ change on almost every deploy. Cloudflare's default
+# (max-age=14400) let the edge and the browser keep serving the old file
+# for hours after a deploy, which is why these used to carry a ?v=NN
+# query — a hand-bumped counter that was easy to forget and, worse, could
+# pin a stale copy to the new query string if anything fetched it during
+# the deploy. no-cache keeps the file cached but forces a revalidation on
+# every request, so a deploy is picked up on the next page load and the
+# usual response is a cheap 304.
+/js/*
+  Cache-Control: no-cache
+
+/css/*
+  Cache-Control: no-cache
