@@ -1,4 +1,5 @@
 // ===== Tim's Work Hub — data & rendering =====
+// Deployed under a content-hashed filename; see .github/workflows/deploy.yml.
 // To add/remove/reorder links, edit GROUPS below and redeploy. Nothing else to touch.
 // A link's subtitle is its hostname; add `host: '...'` to show something else.
 
