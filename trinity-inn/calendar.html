@@ -78,6 +78,15 @@
   .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
   .banner { background: #fbeeea; border: 1px solid #e6c8bf; color: var(--danger); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: .9rem; font-weight: 600; }
 
+  /* Portal card */
+  .portal-card { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
+  .portal-card:hover { box-shadow: 0 4px 14px rgba(38,37,31,.10); transform: translateY(-1px); }
+  .portal-card img { width: 40px; height: 40px; border-radius: 8px; flex: none; }
+  .portal-card .pc-text { margin-right: auto; }
+  .portal-card .pc-title { display: block; font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--green-dark); }
+  .portal-card .pc-sub { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }
+  .portal-card .pc-go { font-size: .86rem; font-weight: 600; color: var(--green); white-space: nowrap; }
+
   /* Modal */
   .overlay { position: fixed; inset: 0; z-index: 20; background: rgba(31, 66, 48, .45); display: none; align-items: center; justify-content: center; padding: 20px; }
   .overlay.open { display: flex; }
@@ -107,6 +116,15 @@
 </div>
 
 <div class="wrap">
+  <a class="portal-card" href="https://trinity.maxlife.cc/">
+    <img src="assets/favicon.png" alt="">
+    <span class="pc-text">
+      <span class="pc-title">Trinity Ranch Portal</span>
+      <span class="pc-sub">Rooms &amp; rates, gallery, payments, and contact info</span>
+    </span>
+    <span class="pc-go">Open site &#8250;</span>
+  </a>
+
   <div class="banner hidden" id="errBanner"></div>
   <div class="chips" id="chips"></div>
 
