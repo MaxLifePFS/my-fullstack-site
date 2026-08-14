@@ -23,9 +23,9 @@
     </a>
     <nav class="nav" id="nav">
       <a href="/"><span class="en">Home</span><span class="zh">首页</span></a>
+      <a href="/education/"><span class="en">Education</span><span class="zh">财商教育</span></a>
       <a href="/services/"><span class="en">Services</span><span class="zh">服务</span></a>
       <a href="/products/"><span class="en">Products</span><span class="zh">产品</span></a>
-      <a href="/education/"><span class="en">Education</span><span class="zh">财商教育</span></a>
       <a href="/franchise/"><span class="en">Franchise</span><span class="zh">创业加盟</span></a>
       <a href="/faq/"><span class="en">FAQ</span><span class="zh">常见问题</span></a>
     </nav>
@@ -415,6 +415,771 @@
   </div>
 </section>
 
+<!-- ============================================================
+     MaxLife Strategy — "The Practical Solution"
+     Sits after the A–I lever accordion, before the CTA band.
+     Self-contained: all CSS scoped under .mls-ps. No JS.
+     Colours map to the site tokens in assets/css/site.css.
+     ============================================================ -->
+<section class="mls-ps">
+<style>
+.mls-ps{
+  --mls-cream:var(--sand);
+  --mls-green:var(--deep);
+  --mls-green-2:var(--emerald);
+  --mls-gold:var(--amber);
+  --mls-gold-soft:#FAF2E0;
+  --mls-ink:var(--ink);
+  --mls-muted:var(--muted);
+  --mls-line:var(--line);
+
+  background:transparent;
+  color:var(--mls-ink);
+  font-family:inherit;
+  padding:72px 20px 76px;
+  box-sizing:border-box;
+}
+.mls-ps *{ box-sizing:border-box; }
+.mls-ps__wrap{ max-width:1060px; margin:0 auto; }
+
+/* ---------- rule + heading ---------- */
+.mls-ps__top{ text-align:center; margin-bottom:44px; }
+.mls-ps__eyebrow{
+  font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--mls-gold); margin-bottom:14px;
+}
+.mls-ps__eyebrow span{ color:var(--mls-muted); letter-spacing:.08em; font-weight:600; }
+.mls-ps__h2{
+  font-family:var(--font-display);
+  font-size:40px; line-height:1.14; font-weight:800; color:var(--mls-green);
+  margin:0 0 6px; letter-spacing:-.02em;
+}
+.mls-ps__h2cn{ font-size:19px; font-weight:600; color:var(--mls-green-2); margin:0 0 18px; }
+.mls-ps__lede{
+  font-size:17.5px; line-height:1.65; color:var(--mls-muted);
+  max-width:730px; margin:0 auto;
+}
+.mls-ps__lede b{ color:var(--mls-ink); font-weight:700; }
+
+/* ---------- the shift ---------- */
+.mls-ps__shift{ display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:52px; }
+.mls-ps__card{
+  background:#fff; border:1px solid var(--mls-line); border-radius:14px; padding:24px 26px 26px;
+}
+.mls-ps__card--accent{ border-color:var(--mls-green); border-width:1.5px; }
+.mls-ps__ctag{
+  font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--mls-muted); margin-bottom:9px;
+}
+.mls-ps__card--accent .mls-ps__ctag{ color:var(--mls-gold); }
+.mls-ps__card h3{ font-family:var(--font-display); font-size:19px; font-weight:700; margin:0 0 9px; color:var(--mls-green); line-height:1.3; }
+.mls-ps__card p{ font-size:15.5px; line-height:1.65; color:var(--mls-muted); margin:0; }
+
+/* ---------- section label ---------- */
+.mls-ps__label{
+  display:flex; align-items:center; gap:14px; margin:0 0 26px;
+  font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--mls-green);
+}
+.mls-ps__label::after{ content:""; flex:1; height:1px; background:var(--mls-line); }
+.mls-ps__label em{ font-style:normal; color:var(--mls-muted); font-weight:600; letter-spacing:.06em; }
+
+/* ---------- three parts ---------- */
+.mls-ps__parts{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:52px; }
+.mls-ps__part{
+  background:#fff; border:1px solid var(--mls-line); border-radius:14px; padding:26px 24px 28px;
+  display:flex; flex-direction:column;
+}
+.mls-ps__badge{
+  width:40px; height:40px; border-radius:10px; background:var(--mls-green);
+  color:var(--mls-gold); font-weight:800; font-size:16px;
+  display:flex; align-items:center; justify-content:center; margin-bottom:16px;
+}
+.mls-ps__part h3{ font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--mls-green); margin:0 0 2px; letter-spacing:-.01em; }
+.mls-ps__part .cn{ font-size:14.5px; color:var(--mls-green-2); font-weight:600; margin-bottom:4px; }
+.mls-ps__part .own{ font-size:15px; font-style:italic; color:var(--mls-gold); font-weight:600; margin-bottom:13px; }
+.mls-ps__part p{ font-size:15px; line-height:1.62; color:var(--mls-muted); margin:0 0 18px; }
+.mls-ps__answers{ margin-top:auto; padding-top:16px; border-top:1px solid var(--mls-line); }
+.mls-ps__answers .lbl{
+  font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--mls-muted); margin-bottom:9px;
+}
+.mls-ps__levers{ display:flex; flex-wrap:wrap; gap:6px; min-height:62px; align-content:flex-start; }
+.mls-ps__lever{
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--mls-gold-soft); border:1px solid #EFDFBA; border-radius:999px;
+  padding:4px 11px 4px 5px; font-size:12.5px; font-weight:600; color:var(--mls-green);
+}
+.mls-ps__lever b{
+  width:19px; height:19px; border-radius:50%; background:var(--mls-green); color:#fff;
+  font-size:10.5px; font-weight:800; display:flex; align-items:center; justify-content:center; flex:0 0 19px;
+}
+
+/* ---------- diagram ---------- */
+.mls-ps__diagram{
+  background:#fff; border:1px solid var(--mls-line); border-radius:14px;
+  padding:30px 26px 24px; margin-bottom:52px; overflow-x:auto;
+}
+.mls-ps__diagram svg{ display:block; width:100%; min-width:660px; height:auto; }
+.mls-ps__cap{
+  text-align:center; font-size:13.5px; color:var(--mls-muted); margin:16px 0 0; line-height:1.55;
+}
+
+/* ---------- mobile vertical flow (replaces the SVG under 720px) ---------- */
+.mls-ps__mflow{ display:none; }
+.mls-ps__mrow{
+  background:#fff; border:1px solid var(--mls-line); border-radius:11px;
+  padding:13px 16px; text-align:center;
+}
+.mls-ps__mrow .n{ font-size:15px; font-weight:700; color:var(--mls-green); }
+.mls-ps__mrow .s{ font-size:12.5px; color:var(--mls-muted); margin-top:3px; }
+.mls-ps__mrow--hub{ background:var(--mls-green); border-color:var(--mls-green); }
+.mls-ps__mrow--hub .n{ color:#fff; font-size:18px; font-weight:800; }
+.mls-ps__mrow--hub .s{ color:var(--mls-gold); font-style:italic; }
+.mls-ps__mrow--dark{ background:var(--mls-green-2); border-color:var(--mls-green-2); }
+.mls-ps__mrow--dark .n{ color:#fff; }
+.mls-ps__mrow--gold{ background:var(--mls-gold-soft); border-color:var(--mls-gold); }
+.mls-ps__mrow--gold .n{ color:#8A6512; }
+.mls-ps__mtick{ text-align:center; color:var(--mls-muted); font-size:15px; line-height:1; padding:7px 0; }
+.mls-ps__msplit{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.mls-ps__mloop{
+  margin-top:12px; border:1.5px dashed var(--mls-gold); border-radius:11px;
+  padding:12px 14px; text-align:center; background:#fff;
+}
+.mls-ps__mloop .n{ font-size:12.5px; font-weight:800; letter-spacing:.12em; color:var(--mls-gold); }
+.mls-ps__mloop .s{ font-size:12.5px; color:var(--mls-muted); margin-top:4px; }
+
+/* ---------- outcomes ---------- */
+.mls-ps__out{ display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:46px; }
+.mls-ps__o{ background:var(--mls-gold-soft); border-radius:11px; padding:15px 8px 16px; text-align:center; }
+.mls-ps__o .t{ font-size:13.5px; font-weight:800; color:#8A6512; line-height:1.2; }
+.mls-ps__o .d{ font-size:13px; color:var(--mls-green); font-weight:600; margin-top:3px; }
+.mls-ps__o .c{ font-size:11.5px; color:var(--mls-muted); margin-top:2px; }
+
+/* ---------- closing ---------- */
+.mls-ps__close{
+  background:var(--mls-green); border-radius:16px; padding:34px 40px;
+  display:flex; align-items:center; justify-content:space-between; gap:32px; flex-wrap:wrap;
+}
+.mls-ps__close p{
+  margin:0; color:#F3EFE4; font-size:19px; line-height:1.55; font-weight:600; max-width:660px;
+}
+.mls-ps__close p b{ color:var(--mls-gold); font-weight:800; }
+.mls-ps__close .cn{ display:block; font-size:14.5px; font-weight:500; color:#A9C4B7; margin-top:8px; }
+.mls-ps__btn{
+  display:inline-block; background:var(--mls-gold); color:#1A1206; text-decoration:none;
+  font-weight:800; font-size:15.5px; padding:15px 30px; border-radius:999px; white-space:nowrap;
+}
+.mls-ps__btn:hover{ background:var(--amber-dk); color:#1A1206; }
+
+/* ---------- responsive ---------- */
+@media (max-width:719px){
+  .mls-ps__diagram svg{ display:none; }
+  .mls-ps__mflow{ display:block; }
+  .mls-ps__diagram{ padding:20px 16px 20px; }
+}
+@media (max-width:900px){
+  .mls-ps__parts{ grid-template-columns:1fr; }
+  .mls-ps__out{ grid-template-columns:repeat(3,1fr); }
+  .mls-ps__h2{ font-size:32px; }
+}
+@media (max-width:640px){
+  .mls-ps{ padding:52px 16px 56px; }
+  .mls-ps__shift{ grid-template-columns:1fr; }
+  .mls-ps__out{ grid-template-columns:repeat(2,1fr); }
+  .mls-ps__h2{ font-size:27px; }
+  .mls-ps__lede{ font-size:16px; }
+  .mls-ps__close{ padding:26px 24px; }
+  .mls-ps__close p{ font-size:17px; }
+}
+</style>
+
+<div class="mls-ps__wrap">
+
+  <!-- ===== heading ===== -->
+  <div class="mls-ps__top">
+    <div class="mls-ps__eyebrow">The Practical Solution <span>实践方案</span></div>
+    <h2 class="mls-ps__h2">MaxLife Strategy</h2>
+    <div class="mls-ps__h2cn">万福策略 — 九大参数，一套系统</div>
+    <p class="mls-ps__lede">The nine levers tell you <b>what</b> to optimize. MaxLife Strategy is <b>how</b> — one integrated system that converts your income into a self-owned, self-financing capital base, so the same dollar can fund your living, your growth, your giving, and your legacy instead of being spent once and gone.</p>
+  </div>
+
+  <!-- ===== the shift ===== -->
+  <div class="mls-ps__shift">
+    <div class="mls-ps__card">
+      <div class="mls-ps__ctag">The usual way</div>
+      <h3>Nine separate fixes</h3>
+      <p>Money flows in and gets divided among disconnected accounts. Each dollar does one job before it disappears, and every lever gets optimized by a different person who cannot see the other eight. Earn, accumulate, spend down, hope it lasts.</p>
+    </div>
+    <div class="mls-ps__card mls-ps__card--accent">
+      <div class="mls-ps__ctag">The MaxLife way</div>
+      <h3>One circulatory system</h3>
+      <p>Capital keeps working while you are using it. Every dollar recirculates through a single hub you own — and what you leave behind recapitalizes the next cycle instead of ending it. Nine levers, moved together, by one plan.</p>
+    </div>
+  </div>
+
+  <!-- ===== three parts ===== -->
+  <div class="mls-ps__label">Three Working Parts <em>三大组成部分</em></div>
+  <div class="mls-ps__parts">
+
+    <div class="mls-ps__part">
+      <div class="mls-ps__badge">1</div>
+      <h3>MaxRetire Plan</h3>
+      <div class="cn">自有退休金计划</div>
+      <div class="own">Your Own Pension</div>
+      <p>A predictable lifetime income floor that you control — so retirement no longer depends on market timing, on withdrawal rates, or on not outliving your savings.</p>
+      <div class="mls-ps__answers">
+        <div class="lbl">Answers levers</div>
+        <div class="mls-ps__levers">
+          <span class="mls-ps__lever"><b>A</b>Passive Income</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mls-ps__part">
+      <div class="mls-ps__badge">2</div>
+      <h3>MaxLife Plan</h3>
+      <div class="cn">自有银行计划</div>
+      <div class="own">Your Own Bank</div>
+      <p>The hub. Asset, income, and protection in one place — capital you can access and redeploy without interrupting its growth, so you finance your own life instead of renting someone else's money.</p>
+      <div class="mls-ps__answers">
+        <div class="lbl">Answers levers</div>
+        <div class="mls-ps__levers">
+          <span class="mls-ps__lever"><b>B</b>Accumulation</span>
+          <span class="mls-ps__lever"><b>D</b>Borrowing</span>
+          <span class="mls-ps__lever"><b>F</b>Protection</span>
+          <span class="mls-ps__lever"><b>G</b>Anti-Inflation</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mls-ps__part">
+      <div class="mls-ps__badge">3</div>
+      <h3>MaxTool Box</h3>
+      <div class="cn">自有生态系统</div>
+      <div class="own">Your Own Ecosystem</div>
+      <p>The enabler. Tax planning, self-financing, business, family foundation, and living trust — the structures that connect every piece into one system rather than nine parallel accounts.</p>
+      <div class="mls-ps__answers">
+        <div class="lbl">Answers levers</div>
+        <div class="mls-ps__levers">
+          <span class="mls-ps__lever"><b>C</b>Smart Spending</span>
+          <span class="mls-ps__lever"><b>E</b>Tax Planning</span>
+          <span class="mls-ps__lever"><b>H</b>Toil</span>
+          <span class="mls-ps__lever"><b>I</b>Charity</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== diagram ===== -->
+  <div class="mls-ps__label">How It Works Together <em>整体运作方式</em></div>
+  <div class="mls-ps__diagram">
+    <svg viewBox="0 0 760 212" xmlns="http://www.w3.org/2000/svg" role="img"
+         aria-label="Income flows through tax planning into the MaxLife Plan hub, which feeds living expenses, the family foundation, and your assets and MaxRetire Plan; these converge through a living trust into estate and legacy, which recapitalizes income through Infinite Finance.">
+      <defs>
+        <marker id="mlsA" markerWidth="7" markerHeight="7" refX="6.2" refY="3.2" orient="auto">
+          <path d="M0,0 L6.4,3.2 L0,6.4 z" fill="#6B7A77"/>
+        </marker>
+        <marker id="mlsG" markerWidth="8" markerHeight="8" refX="7" refY="3.6" orient="auto">
+          <path d="M0,0 L7.2,3.6 L0,7.2 z" fill="#DFA13C"/>
+        </marker>
+      </defs>
+
+      <rect x="0" y="46" width="102" height="46" rx="7" fill="#fff" stroke="#DCD6C8" stroke-width="1.3"/>
+      <text x="51" y="66" text-anchor="middle" font-size="13" font-weight="700" fill="#0C332C">Income</text>
+      <text x="51" y="81" text-anchor="middle" font-size="10" fill="#6B7A77">W-2 · 1099 · Business</text>
+      <line x1="102" y1="69" x2="130" y2="69" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+
+      <rect x="134" y="46" width="98" height="46" rx="7" fill="#16786A"/>
+      <text x="183" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="#fff">Tax Planning</text>
+      <line x1="232" y1="69" x2="260" y2="69" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+
+      <rect x="262" y="30" width="138" height="78" rx="9" fill="#0C332C"/>
+      <text x="331" y="59" text-anchor="middle" font-size="16.5" font-weight="800" fill="#fff">MaxLife Plan</text>
+      <text x="331" y="76" text-anchor="middle" font-size="11.5" font-style="italic" fill="#DFA13C">Your Own Bank</text>
+      <text x="331" y="94" text-anchor="middle" font-size="9.5" letter-spacing="1.6" fill="#8FB0A2">THE HUB</text>
+
+      <line x1="331" y1="110" x2="331" y2="136" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+      <line x1="331" y1="136" x2="331" y2="110" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+      <rect x="228" y="138" width="206" height="44" rx="7" fill="#fff" stroke="#DCD6C8" stroke-width="1.3"/>
+      <text x="331" y="157" text-anchor="middle" font-size="12" font-weight="700" fill="#0C332C">Assets &amp; MaxRetire Plan</text>
+      <text x="331" y="172" text-anchor="middle" font-size="10" fill="#6B7A77">Savings · Investments · Real Estate · Pension</text>
+
+      <line x1="400" y1="50" x2="446" y2="34" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+      <line x1="400" y1="88" x2="446" y2="84" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+
+      <rect x="450" y="6" width="156" height="44" rx="7" fill="#fff" stroke="#DCD6C8" stroke-width="1.3"/>
+      <text x="528" y="25" text-anchor="middle" font-size="12" font-weight="700" fill="#0C332C">Live &amp; Grow</text>
+      <text x="528" y="40" text-anchor="middle" font-size="10" fill="#6B7A77">Lifestyle · College · Business</text>
+
+      <rect x="450" y="60" width="156" height="44" rx="7" fill="#fff" stroke="#DCD6C8" stroke-width="1.3"/>
+      <text x="528" y="79" text-anchor="middle" font-size="12" font-weight="700" fill="#0C332C">Family Foundation</text>
+      <text x="528" y="94" text-anchor="middle" font-size="10" fill="#6B7A77">Purpose · Giving · Impact</text>
+
+      <line x1="606" y1="84" x2="634" y2="92" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+      <line x1="434" y1="155" x2="634" y2="110" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+
+      <rect x="636" y="78" width="124" height="38" rx="7" fill="#16786A"/>
+      <text x="698" y="102" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">Living Trust</text>
+      <line x1="698" y1="116" x2="698" y2="136" stroke="#6B7A77" stroke-width="1.4" marker-end="url(#mlsA)"/>
+
+      <rect x="636" y="138" width="124" height="38" rx="7" fill="#FAF2E0" stroke="#DFA13C" stroke-width="1.5"/>
+      <text x="698" y="162" text-anchor="middle" font-size="12.5" font-weight="700" fill="#8A6512">Estate &amp; Legacy</text>
+
+      <path d="M698,176 L698,202 L51,202 L51,96" fill="none" stroke="#DFA13C" stroke-width="2" stroke-dasharray="6,3.5" marker-end="url(#mlsG)"/>
+      <rect x="286" y="192" width="196" height="20" fill="#fff"/>
+      <text x="384" y="206" text-anchor="middle" font-size="11.5" font-weight="800" letter-spacing="1.6" fill="#DFA13C">INFINITE FINANCE</text>
+    </svg>
+    <!-- mobile equivalent of the diagram -->
+    <div class="mls-ps__mflow">
+      <div class="mls-ps__mrow"><div class="n">Income</div><div class="s">W-2 · 1099 · Business</div></div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__mrow mls-ps__mrow--dark"><div class="n">Tax Planning</div></div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__mrow mls-ps__mrow--hub"><div class="n">MaxLife Plan</div><div class="s">Your Own Bank &mdash; the hub</div></div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__msplit">
+        <div class="mls-ps__mrow"><div class="n">Live &amp; Grow</div><div class="s">Lifestyle · College · Business</div></div>
+        <div class="mls-ps__mrow"><div class="n">Family Foundation</div><div class="s">Purpose · Giving · Impact</div></div>
+      </div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__mrow"><div class="n">Assets &amp; MaxRetire Plan</div><div class="s">Savings · Investments · Real Estate · Pension</div></div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__mrow mls-ps__mrow--dark"><div class="n">Living Trust</div></div>
+      <div class="mls-ps__mtick">&#9660;</div>
+      <div class="mls-ps__mrow mls-ps__mrow--gold"><div class="n">Estate &amp; Legacy</div></div>
+      <div class="mls-ps__mloop"><div class="n">&#8635; INFINITE FINANCE</div><div class="s">Capital returns to the top of the cycle</div></div>
+    </div>
+
+    <p class="mls-ps__cap">Conventional planning ends at the estate. MaxLife Strategy closes the loop — <b>Infinite Finance</b> returns capital to the beginning of the cycle.<br><span>无限金融 — 财富回流，循环不息</span></p>
+  </div>
+
+  <!-- ===== outcomes ===== -->
+  <div class="mls-ps__label">What You Get Back <em>您得到的六种主导权</em></div>
+  <div class="mls-ps__out">
+    <div class="mls-ps__o"><div class="t">Self-Funded</div><div class="d">Pension</div><div class="c">自有养老</div></div>
+    <div class="mls-ps__o"><div class="t">Self-Owned</div><div class="d">Bank</div><div class="c">自有银行</div></div>
+    <div class="mls-ps__o"><div class="t">Self-Driven</div><div class="d">Growth</div><div class="c">自主成长</div></div>
+    <div class="mls-ps__o"><div class="t">Self-Directed</div><div class="d">Charity</div><div class="c">自主公益</div></div>
+    <div class="mls-ps__o"><div class="t">Self-Engineered</div><div class="d">Abundance</div><div class="c">自建丰盛</div></div>
+    <div class="mls-ps__o"><div class="t">Self-Designed</div><div class="d">Freedom</div><div class="c">自主自由</div></div>
+  </div>
+
+  <!-- ===== closing ===== -->
+  <div class="mls-ps__close">
+    <p>MaxLife Strategy is not a product. It is the architecture that follows once you measure every financial tool against one honest yardstick — <b>does it move you closer to a fulfilled life?</b>
+    <span class="cn">万福策略不是产品，而是用同一把尺子衡量每一个金融工具之后，自然得出的架构。</span></p>
+    <a class="mls-ps__btn" href="/products/">See the Tools &rsaquo;</a>
+  </div>
+
+</div>
+</section>
+<!-- ============ end MaxLife Strategy section ============ -->
+
+<!-- ============================================================
+     Anatomy of the MaxLife Strategy — Figure 2-3, rebuilt for web.
+     Self-contained: all CSS scoped under .mls-an. No JS, no images.
+     Move the whole <section> anywhere; nothing outside it is needed.
+     ============================================================ -->
+<section class="mls-an" id="anatomy">
+<style>
+.mls-an{
+  --an-green:var(--deep);
+  --an-green-2:var(--emerald);
+  --an-gold:var(--amber);
+  --an-gold-soft:#FAF2E0;
+  --an-gold-line:#EFDFBA;
+  --an-ink:var(--ink);
+  --an-muted:var(--muted);
+  --an-line:var(--line);
+
+  background:var(--sand-2);
+  color:var(--an-ink);
+  padding:72px 20px 76px;
+}
+.mls-an *{ box-sizing:border-box; }
+.mls-an__wrap{ max-width:1080px; margin:0 auto; }
+
+/* ---------- heading ---------- */
+.mls-an__top{ text-align:center; margin-bottom:46px; }
+.mls-an__eyebrow{
+  font-size:12px; font-weight:700; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--an-gold); margin-bottom:14px;
+}
+.mls-an__eyebrow span.cn{ color:var(--an-muted); letter-spacing:.08em; font-weight:600; }
+.mls-an__h2{
+  font-family:var(--font-display);
+  font-size:38px; line-height:1.16; font-weight:800; color:var(--an-green);
+  margin:0 0 6px; letter-spacing:-.02em;
+}
+.mls-an__h2cn{ font-size:19px; font-weight:600; color:var(--an-green-2); margin:0 0 18px; }
+.mls-an__lede{
+  font-size:17.5px; line-height:1.65; color:var(--an-muted);
+  max-width:760px; margin:0 auto;
+}
+.mls-an__lede b{ color:var(--an-ink); font-weight:700; }
+
+/* ---------- the flowchart ---------- */
+.mls-an__fig{
+  background:var(--paper); border:1px solid var(--an-line); border-radius:14px;
+  padding:26px 24px 20px; margin-bottom:26px; box-shadow:var(--shadow-sm);
+}
+.mls-an__fig svg{ display:block; width:100%; height:auto; }
+.mls-an__fig .f-bar{ fill:var(--paper); stroke:var(--an-line); stroke-width:1.5; }
+.mls-an__fig .f-bar-top{ fill:var(--an-gold); }
+.mls-an__fig .f-hub{ fill:var(--an-green); stroke:var(--an-green); stroke-width:1.5; }
+.mls-an__fig .f-box{ fill:var(--paper); stroke:var(--an-line); stroke-width:1.5; }
+.mls-an__fig .f-rail{ fill:var(--an-green); }
+.mls-an__fig .f-inst{ fill:#FDFBF6; stroke:var(--an-gold-line); stroke-width:1.5; }
+.mls-an__fig .f-line{ stroke:var(--an-gold); stroke-width:2; fill:none; }
+.mls-an__fig text{ font-family:var(--font-body); }
+.mls-an__fig .t-bar{ font-family:var(--font-display); font-size:15px; font-weight:700; fill:var(--an-green); }
+.mls-an__fig .t-barcn{ font-size:12px; font-weight:600; fill:var(--an-green-2); }
+.mls-an__fig .t-hub{ font-family:var(--font-display); font-size:20px; font-weight:800; fill:#fff; }
+.mls-an__fig .t-hubcn{ font-size:13px; font-weight:600; fill:var(--an-gold); }
+.mls-an__fig .t-ch{ font-size:11.5px; font-weight:700; fill:var(--an-muted); letter-spacing:.08em; }
+.mls-an__fig .t-name{ font-family:var(--font-display); font-size:18px; font-weight:800; fill:var(--an-green); }
+.mls-an__fig .t-cn{ font-size:12.5px; font-weight:600; fill:var(--an-green-2); }
+.mls-an__fig .t-own{ font-size:12.5px; font-weight:600; fill:var(--an-gold); font-style:italic; }
+.mls-an__fig .t-meta{ font-size:11px; font-weight:700; fill:var(--an-muted); letter-spacing:.1em; }
+.mls-an__fig .t-inst{ font-family:var(--font-display); font-size:17px; font-weight:800; fill:var(--an-green); }
+.mls-an__fig .t-desc{ font-size:12.5px; fill:var(--an-muted); }
+
+/* ---------- section label ---------- */
+.mls-an__label{
+  display:flex; align-items:center; gap:14px; margin:0 0 24px;
+  font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--an-green);
+}
+.mls-an__label::after{ content:""; flex:1; height:1px; background:var(--an-line); }
+.mls-an__label em{ font-style:normal; color:var(--an-muted); font-weight:600; letter-spacing:.06em; }
+
+/* ---------- the derivation path ---------- */
+.mls-an__path{
+  list-style:none; margin:0 0 54px; padding:0;
+  display:flex; align-items:stretch;
+}
+.mls-an__step{
+  flex:1; position:relative; margin-right:30px;
+  background:var(--paper); border:1px solid var(--an-line); border-top:3px solid var(--an-gold);
+  border-radius:12px; padding:18px 16px 18px;
+  display:flex; flex-direction:column; text-align:center;
+  box-shadow:var(--shadow-sm);
+}
+.mls-an__step:last-child{ margin-right:0; }
+.mls-an__step::after{
+  content:"→"; position:absolute; right:-24px; top:50%; transform:translateY(-50%);
+  font-size:19px; line-height:1; color:var(--an-gold); font-weight:700;
+}
+.mls-an__step:last-child::after{ content:none; }
+.mls-an__ch{
+  font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--an-muted); margin-bottom:9px;
+}
+.mls-an__step b{
+  font-family:var(--font-display); font-size:16.5px; font-weight:700;
+  color:var(--an-green); line-height:1.25; display:block;
+}
+.mls-an__step .cn{ font-size:13.5px; font-weight:600; color:var(--an-green-2); margin-top:3px; }
+.mls-an__step .role{
+  font-size:12.5px; color:var(--an-muted); margin-top:9px; padding-top:9px;
+  border-top:1px solid var(--an-line);
+}
+/* final step — the answer */
+.mls-an__step--final{
+  background:var(--an-green); border-color:var(--an-green); border-top-color:var(--an-gold);
+  flex:1.25;
+}
+.mls-an__step--final .mls-an__ch{ color:var(--an-gold); }
+.mls-an__step--final b{ color:#fff; font-size:19px; font-weight:800; }
+.mls-an__step--final .cn{ color:var(--an-gold); }
+.mls-an__step--final .role{ color:#A9C4B7; border-top-color:rgba(255,255,255,.18); }
+
+/* ---------- constituents ---------- */
+.mls-an__rows{ display:flex; flex-direction:column; gap:16px; margin-bottom:26px; }
+.mls-an__row{
+  display:grid; grid-template-columns:minmax(0,1fr) 34px minmax(0,1.5fr);
+  align-items:stretch; gap:0;
+}
+.mls-an__plan,
+.mls-an__inst{
+  background:var(--paper); border:1px solid var(--an-line); border-radius:12px;
+  padding:20px 22px; box-shadow:var(--shadow-sm);
+}
+.mls-an__plan{ border-left:3px solid var(--an-green); }
+.mls-an__plan h3{
+  font-family:var(--font-display); font-size:20px; font-weight:800;
+  color:var(--an-green); margin:0 0 2px; letter-spacing:-.01em;
+}
+.mls-an__plan .cn{ font-size:14px; font-weight:600; color:var(--an-green-2); }
+.mls-an__plan .own{ font-size:14.5px; font-style:italic; color:var(--an-gold); font-weight:600; margin-top:6px; }
+.mls-an__plan .meta{
+  font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--an-muted); margin-top:11px; padding-top:10px; border-top:1px solid var(--an-line);
+}
+.mls-an__link{ display:flex; align-items:center; justify-content:center; color:var(--an-gold); font-size:18px; font-weight:700; }
+.mls-an__inst .tag{
+  font-size:11px; font-weight:700; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--an-muted); margin-bottom:7px;
+}
+.mls-an__inst h4{
+  font-family:var(--font-display); font-size:18px; font-weight:800;
+  color:var(--an-green); margin:0 0 6px; letter-spacing:.01em;
+}
+.mls-an__inst p{ font-size:14.5px; line-height:1.6; color:var(--an-muted); margin:0; }
+.mls-an__chips{ display:flex; flex-wrap:wrap; gap:7px; }
+.mls-an__chip{
+  background:var(--an-gold-soft); border:1px solid var(--an-gold-line); border-radius:999px;
+  padding:5px 13px; font-size:12.5px; font-weight:600; color:var(--an-green);
+}
+.mls-an__cap{
+  text-align:center; font-size:13.5px; color:var(--an-muted); margin:0; line-height:1.6;
+}
+
+/* ---------- responsive ----------
+   The flowchart carries the story down to 860px; below that it is replaced
+   by the stacked card flow, which says the same thing in one column. */
+.mls-an__mflow{ display:none; }
+@media (max-width:860px){
+  .mls-an__fig{ display:none; }
+  .mls-an__mflow{ display:block; }
+}
+@media (max-width:960px){
+  .mls-an__path{ display:grid; grid-template-columns:1fr 1fr; gap:34px 30px; }
+  .mls-an__step{ margin-right:0; }
+  .mls-an__step::after{ content:none; }
+  .mls-an__step--final{ grid-column:1 / -1; }
+  .mls-an__h2{ font-size:31px; }
+}
+@media (max-width:720px){
+  .mls-an__row{ grid-template-columns:1fr; }
+  .mls-an__link{ padding:7px 0; transform:rotate(90deg); }
+}
+@media (max-width:640px){
+  .mls-an{ padding:52px 16px 56px; }
+  .mls-an__path{ grid-template-columns:1fr; gap:26px; }
+  .mls-an__h2{ font-size:26px; }
+  .mls-an__lede{ font-size:16px; }
+}
+</style>
+
+<div class="mls-an__wrap">
+
+  <!-- ===== heading ===== -->
+  <div class="mls-an__top">
+    <div class="mls-an__eyebrow">The Architecture <span class="cn">结构总览</span></div>
+    <h2 class="mls-an__h2">Anatomy of the MaxLife Strategy</h2>
+    <div class="mls-an__h2cn">万福策略的构成 —— 从人生目标，到具体工具</div>
+    <p class="mls-an__lede">
+      <span class="en">The strategy does not begin with a product. It begins with the life you want, and each step <b>derives</b> the next — needs, tools, and a yardstick honest enough to compare them. Only at the very end does anything specific get named.</span>
+      <span class="zh">策略不从产品开始，而是从您想要的人生开始。每一步都<b>推导</b>出下一步 —— 财务需求、可用工具，以及一把足够诚实的衡量标尺。只有到了最后，才谈得上具体的金融工具。</span>
+    </p>
+  </div>
+
+  <!-- ===== the flowchart (desktop / tablet) ===== -->
+  <div class="mls-an__fig">
+    <svg viewBox="0 0 1200 566" role="img"
+         aria-label="A fulfilled life leads to finance needs, then to available financial tools, then to the Universal Wealth Equation as a yardstick, which produces the MaxLife Strategy. The strategy branches into three parts: the MaxRetire Plan, delivered through a fixed index annuity; the MaxLife Plan, delivered through a flexible indexed universal life policy; and the MaxTool Box, a set of nine enablers.">
+
+      <!-- ---- the chain ---- -->
+      <g>
+        <rect class="f-bar" x="24"  y="60" width="62" height="430" rx="9"/>
+        <rect class="f-bar-top" x="24"  y="60" width="62" height="4" rx="2"/>
+        <text class="t-bar"   transform="rotate(-90 55 275)"  x="55" y="269" text-anchor="middle">Fulfilled Life</text>
+        <text class="t-barcn" transform="rotate(-90 55 275)"  x="55" y="288" text-anchor="middle">圆满人生</text>
+
+        <rect class="f-bar" x="98"  y="60" width="62" height="430" rx="9"/>
+        <rect class="f-bar-top" x="98"  y="60" width="62" height="4" rx="2"/>
+        <text class="t-bar"   transform="rotate(-90 129 275)" x="129" y="269" text-anchor="middle">Finance Needs</text>
+        <text class="t-barcn" transform="rotate(-90 129 275)" x="129" y="288" text-anchor="middle">财务需求</text>
+
+        <rect class="f-bar" x="172" y="60" width="62" height="430" rx="9"/>
+        <rect class="f-bar-top" x="172" y="60" width="62" height="4" rx="2"/>
+        <text class="t-bar"   transform="rotate(-90 203 275)" x="203" y="269" text-anchor="middle">Available Financial Tools</text>
+        <text class="t-barcn" transform="rotate(-90 203 275)" x="203" y="288" text-anchor="middle">可用金融工具</text>
+
+        <rect class="f-bar" x="246" y="60" width="62" height="430" rx="9"/>
+        <rect class="f-bar-top" x="246" y="60" width="62" height="4" rx="2"/>
+        <text class="t-bar"   transform="rotate(-90 277 275)" x="277" y="269" text-anchor="middle">Universal Wealth Equation</text>
+        <text class="t-barcn" transform="rotate(-90 277 275)" x="277" y="288" text-anchor="middle">广义财富方程 · 衡量标尺</text>
+
+        <!-- the pivot -->
+        <rect class="f-hub" x="320" y="40" width="80" height="470" rx="11"/>
+        <text class="t-hub"   transform="rotate(-90 360 275)" x="360" y="268" text-anchor="middle">MaxLife Strategy</text>
+        <text class="t-hubcn" transform="rotate(-90 360 275)" x="360" y="290" text-anchor="middle">万福策略</text>
+      </g>
+
+      <!-- links along the chain -->
+      <path class="f-line" d="M86 275 H98  M160 275 H172  M234 275 H246  M308 275 H320"/>
+
+      <!-- chapter rail -->
+      <text class="t-ch" x="55"  y="522" text-anchor="middle">Chapter 1</text>
+      <text class="t-ch" x="166" y="522" text-anchor="middle">Chapter 2</text>
+      <text class="t-ch" x="277" y="522" text-anchor="middle">Chapter 3</text>
+
+      <!-- ---- the branch ---- -->
+      <path class="f-line" d="M400 275 H432 M432 125 V425 M432 125 H470 M432 275 H470 M432 425 H470"/>
+      <circle class="f-rail" cx="432" cy="125" r="4"/>
+      <circle class="f-rail" cx="432" cy="275" r="4"/>
+      <circle class="f-rail" cx="432" cy="425" r="4"/>
+
+      <!-- ---- row 1: MaxRetire ---- -->
+      <rect class="f-box" x="470" y="66" width="250" height="118" rx="11"/>
+      <text class="t-name" x="595" y="97"  text-anchor="middle">MaxRetire Plan</text>
+      <text class="t-cn"   x="595" y="116" text-anchor="middle">自有退休金计划 · 收入</text>
+      <text class="t-own"  x="595" y="139" text-anchor="middle">Your Own Pension</text>
+      <text class="t-meta" x="595" y="164" text-anchor="middle">CHAPTER 4</text>
+      <path class="f-line" d="M720 125 H752"/>
+      <path class="f-rail" d="M764 125 l-13 -6 v12 z"/>
+      <rect class="f-inst" x="764" y="66" width="412" height="118" rx="11"/>
+      <text class="t-inst" x="970" y="102" text-anchor="middle">FIA</text>
+      <text class="t-desc" x="970" y="126" text-anchor="middle">A properly selected Fixed Index Annuity contract,</text>
+      <text class="t-desc" x="970" y="145" text-anchor="middle">matched to the right objective.</text>
+      <text class="t-desc" x="970" y="166" text-anchor="middle">固定指数年金 —— 为正确的目标精选</text>
+
+      <!-- ---- row 2: MaxLife ---- -->
+      <rect class="f-box" x="470" y="216" width="250" height="118" rx="11"/>
+      <text class="t-name" x="595" y="247" text-anchor="middle">MaxLife Plan</text>
+      <text class="t-cn"   x="595" y="266" text-anchor="middle">自有银行计划 · 资产/收入/保障</text>
+      <text class="t-own"  x="595" y="289" text-anchor="middle">Your Own Bank</text>
+      <text class="t-meta" x="595" y="314" text-anchor="middle">CHAPTERS 5, 8</text>
+      <path class="f-line" d="M720 275 H752"/>
+      <path class="f-rail" d="M764 275 l-13 -6 v12 z"/>
+      <rect class="f-inst" x="764" y="216" width="412" height="118" rx="11"/>
+      <text class="t-inst" x="970" y="252" text-anchor="middle">FIUL</text>
+      <text class="t-desc" x="970" y="276" text-anchor="middle">A specially designed Flexible Indexed Universal Life</text>
+      <text class="t-desc" x="970" y="295" text-anchor="middle">policy, with overfunding and smart leverage.</text>
+      <text class="t-desc" x="970" y="316" text-anchor="middle">灵活指数型万能寿险 —— 超额注资 + 智能杠杆</text>
+
+      <!-- ---- row 3: MaxTool Box ---- -->
+      <rect class="f-box" x="470" y="366" width="250" height="118" rx="11"/>
+      <text class="t-name" x="595" y="397" text-anchor="middle">MaxTool Box</text>
+      <text class="t-cn"   x="595" y="416" text-anchor="middle">自有生态系统 · 使能工具</text>
+      <text class="t-own"  x="595" y="439" text-anchor="middle">Your Own Ecosystem</text>
+      <text class="t-meta" x="595" y="464" text-anchor="middle">CHAPTERS 6, 7, 8, 9</text>
+      <path class="f-line" d="M720 425 H752"/>
+      <path class="f-rail" d="M764 425 l-13 -6 v12 z"/>
+      <rect class="f-inst" x="764" y="366" width="412" height="118" rx="11"/>
+      <text class="t-desc" x="970" y="396" text-anchor="middle">Unlearn to Earn · Math Validation · Tax Savings</text>
+      <text class="t-desc" x="970" y="418" text-anchor="middle">Self-Financing · Private Foundation · Franchise Business</text>
+      <text class="t-desc" x="970" y="440" text-anchor="middle">Infinite Finance · Living Trust · MaxLife Integration</text>
+      <text class="t-meta" x="970" y="464" text-anchor="middle">NINE ENABLERS · 九大配套工具</text>
+    </svg>
+  </div>
+
+  <!-- ===== stacked flow (mobile fallback for the chart above) ===== -->
+  <div class="mls-an__mflow">
+
+  <!-- ===== the derivation path ===== -->
+  <div class="mls-an__label">The Path <em>推导路径</em></div>
+  <ol class="mls-an__path">
+    <li class="mls-an__step">
+      <div class="mls-an__ch"><span class="en">Chapter 1</span><span class="zh">第 1 章</span></div>
+      <b>Fulfilled Life</b>
+      <div class="cn">圆满人生</div>
+      <div class="role"><span class="en">The goal</span><span class="zh">目标</span></div>
+    </li>
+    <li class="mls-an__step">
+      <div class="mls-an__ch"><span class="en">Chapter 2</span><span class="zh">第 2 章</span></div>
+      <b>Finance Needs</b>
+      <div class="cn">财务需求</div>
+      <div class="role"><span class="en">What it takes</span><span class="zh">需要什么</span></div>
+    </li>
+    <li class="mls-an__step">
+      <div class="mls-an__ch"><span class="en">Chapter 2</span><span class="zh">第 2 章</span></div>
+      <b>Available Financial Tools</b>
+      <div class="cn">可用金融工具</div>
+      <div class="role"><span class="en">What exists</span><span class="zh">有哪些选择</span></div>
+    </li>
+    <li class="mls-an__step">
+      <div class="mls-an__ch"><span class="en">Chapter 3</span><span class="zh">第 3 章</span></div>
+      <b>Universal Wealth Equation</b>
+      <div class="cn">广义财富方程</div>
+      <div class="role"><span class="en">The yardstick</span><span class="zh">衡量标尺</span></div>
+    </li>
+    <li class="mls-an__step mls-an__step--final">
+      <div class="mls-an__ch"><span class="en">The Answer</span><span class="zh">答案</span></div>
+      <b>MaxLife Strategy</b>
+      <div class="cn">万福策略</div>
+      <div class="role"><span class="en">Three working parts, below</span><span class="zh">三大组成部分，见下</span></div>
+    </li>
+  </ol>
+
+  <!-- ===== three constituents ===== -->
+  <div class="mls-an__label">The Constituents <em>三大组成与对应工具</em></div>
+  <div class="mls-an__rows">
+
+    <div class="mls-an__row">
+      <div class="mls-an__plan">
+        <h3>MaxRetire Plan</h3>
+        <div class="cn">自有退休金计划</div>
+        <div class="own">Your Own Pension <span class="zh">· 收入</span><span class="en">· Income</span></div>
+        <div class="meta"><span class="en">Chapter 4</span><span class="zh">第 4 章</span></div>
+      </div>
+      <div class="mls-an__link" aria-hidden="true">→</div>
+      <div class="mls-an__inst">
+        <div class="tag"><span class="en">The instrument</span><span class="zh">对应工具</span></div>
+        <h4>FIA</h4>
+        <p>
+          <span class="en">A properly selected <b>Fixed Index Annuity</b> contract, matched to the right objective.</span>
+          <span class="zh">精心挑选的<b>固定指数年金</b>合约，与正确的目标相匹配。</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="mls-an__row">
+      <div class="mls-an__plan">
+        <h3>MaxLife Plan</h3>
+        <div class="cn">自有银行计划</div>
+        <div class="own">Your Own Bank <span class="en">· Asset / Income / Protection</span><span class="zh">· 资产 / 收入 / 保障</span></div>
+        <div class="meta"><span class="en">Chapters 5, 8</span><span class="zh">第 5、8 章</span></div>
+      </div>
+      <div class="mls-an__link" aria-hidden="true">→</div>
+      <div class="mls-an__inst">
+        <div class="tag"><span class="en">The instrument</span><span class="zh">对应工具</span></div>
+        <h4>FIUL</h4>
+        <p>
+          <span class="en">A specially designed <b>Flexible Indexed Universal Life</b> policy, with overfunding and smart leverage.</span>
+          <span class="zh">特别设计的<b>灵活指数型万能寿险</b>保单，配合超额注资与智能杠杆。</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="mls-an__row">
+      <div class="mls-an__plan">
+        <h3>MaxTool Box</h3>
+        <div class="cn">自有生态系统</div>
+        <div class="own">Your Own Ecosystem <span class="en">· Enabler</span><span class="zh">· 使能工具</span></div>
+        <div class="meta"><span class="en">Chapters 6, 7, 8, 9</span><span class="zh">第 6、7、8、9 章</span></div>
+      </div>
+      <div class="mls-an__link" aria-hidden="true">→</div>
+      <div class="mls-an__inst">
+        <div class="tag"><span class="en">The enablers</span><span class="zh">配套工具</span></div>
+        <div class="mls-an__chips">
+          <span class="mls-an__chip">Unlearn to Earn</span>
+          <span class="mls-an__chip"><span class="en">Math Validation</span><span class="zh">数学验证</span></span>
+          <span class="mls-an__chip"><span class="en">Tax Savings</span><span class="zh">省税策略</span></span>
+          <span class="mls-an__chip"><span class="en">Self-Financing</span><span class="zh">自我融资</span></span>
+          <span class="mls-an__chip"><span class="en">Private Foundation</span><span class="zh">私人基金会</span></span>
+          <span class="mls-an__chip"><span class="en">Franchise Business</span><span class="zh">加盟事业</span></span>
+          <span class="mls-an__chip"><span class="en">Infinite Finance</span><span class="zh">无限金融</span></span>
+          <span class="mls-an__chip"><span class="en">Living Trust</span><span class="zh">生前信托</span></span>
+          <span class="mls-an__chip"><span class="en">MaxLife Integration</span><span class="zh">万福整合</span></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div><!-- /mls-an__mflow -->
+
+  <p class="mls-an__cap">
+    <span class="en">Anatomy of the MaxLife Strategy and its constituents — every part traceable back to one question: does it move you closer to a fulfilled life?</span>
+    <span class="zh">万福策略的构成与对应工具 —— 每一部分都可以追溯到同一个问题：它是否让您更接近圆满人生？</span>
+  </p>
+
+</div>
+</section>
+<!-- ============ end Anatomy section ============ -->
+
 <!-- ===== CTA ===== -->
 <section class="cta-band">
   <div class="wrap">
@@ -457,6 +1222,7 @@
           <li><a href="/products/"><span class="en">Products</span><span class="zh">产品</span></a></li>
           <li><a href="/education/"><span class="en">Education</span><span class="zh">财商教育</span></a></li>
           <li><a href="/franchise/"><span class="en">Franchise</span><span class="zh">创业加盟</span></a></li>
+          <li><a href="/education/calculators/"><span class="en">Calculators</span><span class="zh">理财计算器</span></a></li>
           <li><a href="/faq/"><span class="en">FAQ</span><span class="zh">常见问题</span></a></li>
         </ul>
       </div>
