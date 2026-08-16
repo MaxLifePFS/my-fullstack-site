@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutual Fund vs. MaxLife Fund — Finance Calculators</title>
+  <link rel="stylesheet" href="css/style.css?v=27b1811b">
+  <script src="js/common.js?v=efccdc49"></script>
+  <style>
+    /* Page-specific: bucket illustration + timeline control */
+    .timeline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+    .timeline input[type="range"] { flex: 1; min-width: 200px; accent-color: var(--accent); }
+    .play-btn {
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font: inherit;
+      cursor: pointer;
+      min-width: 78px;
+    }
+    .play-btn:hover { border-color: var(--accent); }
+    .year-label { font-size: 0.9rem; color: var(--text-secondary); min-width: 250px; }
+    .bucket-svg text { font-family: inherit; }
+    .drip { animation: drip 1.8s linear infinite; }
+    @keyframes drip {
+      0%   { transform: translateY(-14px); opacity: 0; }
+      20%  { opacity: 1; }
+      100% { transform: translateY(26px); opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .drip { animation: none; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <h1><a href="index.html">Mutual Fund vs. MaxLife Fund</a></h1>
+      <div class="header-right">
+        <span class="crumb"><a href="index.html">Home</a> / Mutual Fund vs. MaxLife Fund</span>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark">Theme</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Common inputs — same deposits, same withdrawals, two ways to manage</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="savings">Annual earning ($)</label>
+          <input type="number" id="savings" value="100000" min="0" step="10000">
+        </div>
+        <div class="field">
+          <label for="expense">Annual spending ($)</label>
+          <input type="number" id="expense" value="60000" min="0" step="5000">
+        </div>
+        <div class="field">
+          <label for="acc-years">Saving years</label>
+          <input type="number" id="acc-years" value="20" min="0" max="100" step="1">
+        </div>
+        <div class="field">
+          <label for="retire">Annual cash need after that ($)</label>
+          <input type="number" id="retire" value="300000" min="0" step="10000">
+        </div>
+        <div class="field">
+          <label for="horizon">Simulation horizon (total years)</label>
+          <input type="number" id="horizon" value="35" min="1" max="120" step="1">
+        </div>
+      </div>
+      <div class="scenario-grid" style="margin-top:18px">
+        <div class="scenario-col">
+          <h3 class="scenario-title"><span class="swatch" style="background:var(--series-1)"></span>Scenario A — spend down assets</h3>
+          <div class="field">
+            <label for="a-rate">Asset growth rate (%/yr)</label>
+            <input type="number" id="a-rate" value="8" min="-50" max="100" step="0.1">
+          </div>
+          <p class="note" style="margin:0">Every cashout is taken out of the portfolio:
+            while saving, only the leftover (earning − cashout need) is invested; afterwards
+            the yearly cashout is withdrawn directly from assets.</p>
+        </div>
+        <div class="scenario-col">
+          <h3 class="scenario-title"><span class="swatch" style="background:var(--series-2)"></span>Scenario B — leverage against assets</h3>
+          <div class="field">
+            <label for="b-rate">Asset growth rate (%/yr)</label>
+            <input type="number" id="b-rate" value="8" min="-50" max="100" step="0.1">
+          </div>
+          <div class="field">
+            <label for="premium">Asset Cost ($/yr, from assets, during all years)</label>
+            <input type="number" id="premium" value="10000" min="0" step="1000">
+          </div>
+          <div class="field">
+            <label for="loan-rate">Loan interest rate (%/yr, never repaid, compounds)</label>
+            <input type="number" id="loan-rate" value="5" min="0" max="50" step="0.1">
+          </div>
+          <div class="field">
+            <label for="coverage">Insurance benefit ($)</label>
+            <input type="number" id="coverage" value="1000000" min="0" step="100000">
+          </div>
+          <p class="note" style="margin:0">Cash needs are borrowed, so assets are never
+            touched except for the premium. The loan compounds and is never repaid;
+            "out of money" means the loan catches up with the assets (net worth ≤ 0).</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Different Outputs</h2>
+      <div class="results-grid">
+        <div class="result-col col-a">
+          <h3 class="scenario-title"><span class="swatch" style="background:var(--series-1)"></span>Scenario A — spend down assets</h3>
+          <div id="tiles-a"></div>
+        </div>
+        <div class="result-col col-b">
+          <h3 class="scenario-title"><span class="swatch" style="background:var(--series-2)"></span>Scenario B — leverage against assets</h3>
+          <div id="tiles-b"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>The same cash need, funded two ways</h2>
+      <div class="timeline">
+        <button class="play-btn" id="bk-play">Play</button>
+        <span class="year-label" id="bk-year-label">Year 1 — saving</span>
+        <input type="range" id="bk-year" min="1" max="60" value="1" aria-label="Year">
+      </div>
+      <div class="chart-box">
+        <svg class="bucket-svg" viewBox="0 0 900 514" role="img" aria-labelledby="bk-t bk-d">
+          <title id="bk-t">Bucket comparison of the two scenarios</title>
+          <desc id="bk-d">Scenario A is one bucket: earnings pour in while working, and every
+            cash need is drained straight out of it, so it empties. Scenario B is two buckets:
+            earnings fill the asset bucket and are never spent, while the same cash need is
+            borrowed into a second bucket that fills as a loan. The asset bucket keeps rising
+            and stays ahead of the loan.</desc>
+          <defs>
+            <marker id="bk-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <text id="bk-scale" x="884" y="508" text-anchor="end" font-size="11" fill="var(--text-muted)"></text>
+          <line x1="400" y1="16" x2="400" y2="470" stroke="var(--gridline)" stroke-width="1"/>
+
+          <!-- ============ Scenario A: one bucket ============ -->
+          <text x="195" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text-primary)">A — Spend down assets</text>
+
+          <g id="a-pour">
+            <text x="195" y="58" text-anchor="middle" font-size="12" fill="var(--text-secondary)">Earnings in</text>
+            <text id="a-pour-amt" x="195" y="78" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text-primary)"></text>
+            <path d="M195 88 L195 142" stroke="var(--series-1)" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+            <polygon points="187,140 203,140 195,152" fill="var(--series-1)"/>
+          </g>
+
+          <rect x="102" y="150" width="186" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="a-body" x="110" y="160" width="170" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="a-w" x="115" y="405" width="160" height="0" rx="8" fill="var(--series-1)" fill-opacity="0.24" stroke="var(--series-1)"/>
+          <path id="a-wv" d="M115 0 q20 -7 40 0 t40 0 t40 0 t40 0" fill="none" stroke="var(--series-1)" stroke-width="2" transform="translate(0,405)" opacity="0"/>
+
+          <!-- drain: every cash need comes straight out of the bucket -->
+          <g id="a-drain">
+            <path d="M280 356 h26 v14" fill="none" stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <ellipse class="drip" cx="306" cy="392" rx="3.5" ry="5" fill="var(--crit)"/>
+            <ellipse class="drip" cx="306" cy="392" rx="3.5" ry="5" fill="var(--crit)" style="animation-delay:.6s"/>
+            <ellipse class="drip" cx="306" cy="392" rx="3.5" ry="5" fill="var(--crit)" style="animation-delay:1.2s"/>
+            <text x="332" y="330" text-anchor="middle" font-size="12" fill="var(--text-secondary)">Cash out</text>
+            <text id="a-drain-amt" x="332" y="348" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text-primary)"></text>
+          </g>
+
+          <text id="a-val" x="195" y="438" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="195" y="458" text-anchor="middle" font-size="12" fill="var(--text-secondary)">Assets = net worth</text>
+          <text id="a-status" x="195" y="480" text-anchor="middle" font-size="12" font-weight="600" fill="var(--crit)"></text>
+
+          <!-- ============ Scenario B: two buckets ============ -->
+          <text x="665" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="var(--text-primary)">B — Leverage against assets</text>
+
+          <g id="b-pour">
+            <text x="555" y="58" text-anchor="middle" font-size="12" fill="var(--text-secondary)">Earnings in, never spent</text>
+            <text id="b-pour-amt" x="555" y="78" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text-primary)"></text>
+            <path d="M555 88 L555 142" stroke="var(--series-3)" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+            <polygon points="547,140 563,140 555,152" fill="var(--series-3)"/>
+          </g>
+
+          <g id="b-borrow">
+            <text x="775" y="58" text-anchor="middle" font-size="12" fill="var(--text-secondary)">Same cash, borrowed</text>
+            <text id="b-borrow-amt" x="775" y="78" text-anchor="middle" font-size="14" font-weight="600" fill="var(--text-primary)"></text>
+            <path d="M775 88 L775 142" stroke="var(--series-4)" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+            <polygon points="767,140 783,140 775,152" fill="var(--series-4)"/>
+          </g>
+
+          <rect x="462" y="150" width="186" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect x="470" y="160" width="170" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="b1-w" x="475" y="405" width="160" height="0" rx="8" fill="var(--series-3)" fill-opacity="0.24" stroke="var(--series-3)"/>
+          <path id="b1-wv" d="M475 0 q20 -7 40 0 t40 0 t40 0 t40 0" fill="none" stroke="var(--series-3)" stroke-width="2" transform="translate(0,405)" opacity="0"/>
+
+          <!-- the MaxLife asset cost leaks out of bucket 1 every year -->
+          <g id="b1-drain">
+            <path d="M470 356 h-26 v14" fill="none" stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <ellipse class="drip" cx="444" cy="392" rx="3.5" ry="5" fill="var(--series-3)"/>
+            <ellipse class="drip" cx="444" cy="392" rx="3.5" ry="5" fill="var(--series-3)" style="animation-delay:.6s"/>
+            <ellipse class="drip" cx="444" cy="392" rx="3.5" ry="5" fill="var(--series-3)" style="animation-delay:1.2s"/>
+            <text x="440" y="326" text-anchor="middle" font-size="11" fill="var(--text-secondary)">Asset cost</text>
+            <text id="b1-drain-amt" x="440" y="344" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+            <text x="440" y="424" text-anchor="middle" font-size="10" fill="var(--text-muted)">buys the benefit</text>
+          </g>
+
+          <rect x="682" y="150" width="186" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect x="690" y="160" width="170" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="b2-w" x="695" y="405" width="160" height="0" rx="8" fill="var(--series-4)" fill-opacity="0.24" stroke="var(--series-4)"/>
+          <path id="b2-wv" d="M695 0 q20 -7 40 0 t40 0 t40 0 t40 0" fill="none" stroke="var(--series-4)" stroke-width="2" transform="translate(0,405)" opacity="0"/>
+
+          <!-- the loan is secured by bucket 1, it does not drain it -->
+          <line x1="645" y1="300" x2="685" y2="300" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#bk-ar)"/>
+          <text x="665" y="292" text-anchor="middle" font-size="10" fill="var(--text-muted)">secures</text>
+
+          <text id="b1-val" x="555" y="438" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="555" y="458" text-anchor="middle" font-size="12" fill="var(--text-secondary)">1 · Assets, untouched</text>
+          <text id="b2-val" x="775" y="438" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="775" y="458" text-anchor="middle" font-size="12" fill="var(--text-secondary)">2 · Loan balance</text>
+          <text id="b-status" x="665" y="480" text-anchor="middle" font-size="12" font-weight="600" fill="var(--good)"></text>
+        </svg>
+      </div>
+      <p class="note">Water levels are the calculator's own numbers — each bucket is that
+        year's end-of-year balance from the table below. All three share one fixed scale that
+        never changes as the years run, so a level moves only when the balance does. The scale
+        has to hold the largest balance reached, so a longer <em>Simulation horizon</em>
+        flattens the early years — compounding runs away with the top of the scale. Shorten
+        it to zoom back in. Scenario A drains because every dollar spent leaves
+        the bucket for good and stops compounding. Scenario B never drains bucket 1, so it
+        keeps compounding at the asset growth rate while the loan compounds at the lower loan
+        rate — that gap is the whole mechanism.</p>
+    </section>
+
+    <section class="panel">
+      <div class="chart-head">
+        <h2 style="margin:0">Assets, loan, and net worth over time</h2>
+        <div class="legend">
+          <span class="key"><span class="swatch" style="background:var(--series-1)"></span>A net worth</span>
+          <span class="key"><span class="swatch" style="background:var(--series-2)"></span>B net worth</span>
+          <span class="key"><span class="swatch" style="background:var(--series-3)"></span>B assets</span>
+          <span class="key"><span class="swatch" style="background:var(--series-4)"></span>B loan</span>
+        </div>
+      </div>
+      <div class="chart-box" id="chart-box">
+        <svg id="chart" viewBox="0 0 760 380" role="img"
+             aria-label="Line chart comparing scenario A net worth with scenario B assets, loan and net worth by year"></svg>
+        <div class="chart-tip" id="chart-tip"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>End-of-year balances</h2>
+      <div class="table-scroll">
+        <table class="data" id="schedule">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Deposit</th>
+              <th>Income</th>
+              <th>A net worth</th>
+              <th>B assets</th>
+              <th>B loan</th>
+              <th>B net worth</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note">Simplified model: all cash flows (savings, premium, cashout,
+        borrowing) happen at the beginning of each year and then grow/accrue for
+        that year; constant rates, loan
+        always available with no loan-to-value cap, and the insurance death benefit is
+        collateral only (not counted in net worth). Real policy loans have borrowing
+        limits and variable rates.</p>
+    </section>
+  </div>
+
+  <script src="js/spend-vs-borrow.js?v=e8669ba2"></script>
+</body>
+</html>

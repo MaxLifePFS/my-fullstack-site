@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaxLife Strategy Loop — Finance Calculators</title>
+  <link rel="stylesheet" href="css/style.css?v=27b1811b">
+  <script src="js/common.js?v=efccdc49"></script>
+  <style>
+    /* Page-specific: bucket illustration + timeline control */
+    .timeline { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+    .timeline input[type="range"] { flex: 1; min-width: 200px; accent-color: var(--accent); }
+    .play-btn {
+      border: 1px solid var(--border);
+      background: var(--surface-1);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 6px 16px;
+      font: inherit;
+      cursor: pointer;
+      min-width: 78px;
+    }
+    .play-btn:hover { border-color: var(--accent); }
+    .year-label { font-size: 0.9rem; color: var(--text-secondary); min-width: 250px; }
+    .bucket-svg text { font-family: inherit; }
+    .drip { animation: drip 1.8s linear infinite; }
+    @keyframes drip {
+      0%   { transform: translateY(-14px); opacity: 0; }
+      20%  { opacity: 1; }
+      100% { transform: translateY(26px); opacity: 0; }
+    }
+    /* the self-financing return loop, drawn as travelling dashes */
+    .flow-loop { stroke-dasharray: 9 6; animation: flow 1.4s linear infinite; }
+    @keyframes flow { to { stroke-dashoffset: -30; } }
+    @media (prefers-reduced-motion: reduce) {
+      .drip, .flow-loop { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <h1><a href="index.html">MaxLife Strategy Loop</a></h1>
+      <div class="header-right">
+        <span class="crumb"><a href="index.html">Home</a> / MaxLife Strategy Loop</span>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark">Theme</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Inputs — income never leaves the asset bucket</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="income">Annual income into assets ($)</label>
+          <input type="number" id="income" value="100000" min="0" step="10000">
+        </div>
+        <div class="field">
+          <label for="income-years">Income years</label>
+          <input type="number" id="income-years" value="20" min="0" max="100" step="1">
+        </div>
+        <div class="field">
+          <label for="asset-rate">Asset growth rate (%/yr)</label>
+          <input type="number" id="asset-rate" value="8" min="-20" max="30" step="0.1">
+        </div>
+        <div class="field">
+          <label for="ltv">Borrow up to (% of assets)</label>
+          <input type="number" id="ltv" value="50" min="0" max="95" step="1">
+        </div>
+        <div class="field">
+          <label for="borrow-start">Borrowing starts (year)</label>
+          <input type="number" id="borrow-start" value="5" min="1" max="100" step="1">
+        </div>
+        <div class="field">
+          <label for="loan-rate">Loan interest (%/yr)</label>
+          <input type="number" id="loan-rate" value="5" min="0" max="30" step="0.1">
+        </div>
+        <div class="field">
+          <label for="prop-yield">Airbnb net income (% of property/yr)</label>
+          <input type="number" id="prop-yield" value="10" min="0" max="40" step="0.5">
+        </div>
+        <div class="field">
+          <label for="prop-appr">Property appreciation (%/yr)</label>
+          <input type="number" id="prop-appr" value="6" min="-20" max="20" step="0.5">
+        </div>
+        <div class="field">
+          <label for="horizon">Simulation horizon (years)</label>
+          <input type="number" id="horizon" value="30" min="2" max="60" step="1">
+        </div>
+      </div>
+      <p class="note">All flows happen at the beginning of the year, then assets and properties
+        grow for that year. Borrowing each year takes whatever headroom is left under the
+        loan-to-value cap. Rental income pays the loan interest first; whatever is left over
+        pours back into the asset bucket. If the rent does not cover the interest, the
+        shortfall is added to the loan.</p>
+    </section>
+
+    <section class="panel">
+      <h2>The loop, year by year</h2>
+      <div class="timeline">
+        <button class="play-btn" id="bk-play">Play</button>
+        <span class="year-label" id="bk-year-label">Year 1</span>
+        <input type="range" id="bk-year" min="1" max="30" value="1" aria-label="Year">
+      </div>
+      <div class="chart-box">
+        <svg class="bucket-svg" viewBox="0 0 940 580" role="img" aria-labelledby="ml-t ml-d">
+          <title id="ml-t">MaxLife strategy self-financing loop</title>
+          <desc id="ml-d">All income pours into the asset bucket and is never cashed out.
+            Borrowing against that bucket fills a liability bucket, and the borrowed money buys
+            Airbnb property. The property's net rental income pays the loan interest, and the
+            surplus flows back into the asset bucket, which raises borrowing capacity again.</desc>
+          <defs>
+            <marker id="ml-ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- ===== income in ===== -->
+          <g id="in-pour">
+            <text x="185" y="42" text-anchor="middle" font-size="12" fill="var(--text-secondary)">100% income in — never cashed out</text>
+            <text id="in-amt" x="185" y="64" text-anchor="middle" font-size="15" font-weight="600" fill="var(--text-primary)"></text>
+            <path d="M185 76 L185 160" stroke="var(--series-2)" stroke-width="5" stroke-linecap="round" opacity="0.45"/>
+            <polygon points="177,158 193,158 185,172" fill="var(--series-2)"/>
+          </g>
+
+          <!-- ===== bucket 1: Asset ===== -->
+          <rect x="82" y="170" width="206" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect x="90" y="180" width="190" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="w-asset" x="95" y="425" width="180" height="0" rx="8" fill="var(--series-2)" fill-opacity="0.24" stroke="var(--series-2)"/>
+          <path id="wv-asset" d="M95 0 q22 -8 45 0 t45 0 t45 0 t45 0" fill="none" stroke="var(--series-2)" stroke-width="2" transform="translate(0,425)" opacity="0"/>
+
+          <!-- ===== borrow against assets ===== -->
+          <g id="borrow-flow">
+            <line x1="288" y1="250" x2="378" y2="250" stroke="var(--crit)" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#ml-ar)"/>
+            <text x="333" y="228" text-anchor="middle" font-size="11.5" fill="var(--text-secondary)">borrow against</text>
+            <text id="borrow-amt" x="333" y="244" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+          </g>
+
+          <!-- ===== bucket 2: Liability ===== -->
+          <rect x="372" y="170" width="196" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect x="380" y="180" width="180" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="w-loan" x="385" y="425" width="170" height="0" rx="8" fill="var(--crit)" fill-opacity="0.24" stroke="var(--crit)"/>
+          <path id="wv-loan" d="M385 0 q21 -8 42.5 0 t42.5 0 t42.5 0 t42.5 0" fill="none" stroke="var(--crit)" stroke-width="2" transform="translate(0,425)" opacity="0"/>
+
+          <!-- ===== borrowed money buys property ===== -->
+          <g id="buy-flow">
+            <line x1="568" y1="250" x2="668" y2="250" stroke="var(--series-1)" stroke-width="2" marker-end="url(#ml-ar)"/>
+            <text x="618" y="228" text-anchor="middle" font-size="11.5" fill="var(--text-secondary)">buys Airbnb</text>
+            <text id="buy-amt" x="618" y="244" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text-primary)"></text>
+          </g>
+
+          <!-- ===== bucket 3: Reinvest / properties ===== -->
+          <rect x="672" y="170" width="206" height="16" rx="8" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect x="680" y="180" width="190" height="250" rx="12" fill="var(--surface-1)" stroke="var(--baseline)"/>
+          <rect id="w-prop" x="685" y="425" width="180" height="0" rx="8" fill="var(--series-1)" fill-opacity="0.24" stroke="var(--series-1)"/>
+          <path id="wv-prop" d="M685 0 q22 -8 45 0 t45 0 t45 0 t45 0" fill="none" stroke="var(--series-1)" stroke-width="2" transform="translate(0,425)" opacity="0"/>
+
+          <!-- interest drains out of the liability bucket's rent before the surplus returns -->
+          <text x="475" y="452" text-anchor="middle" font-size="11" fill="var(--text-secondary)">interest paid from rent</text>
+          <text id="interest-amt" x="475" y="468" text-anchor="middle" font-size="12" font-weight="600" fill="var(--text-primary)"></text>
+
+          <!-- ===== bucket values ===== -->
+          <text id="v-asset" x="185" y="455" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="185" y="475" text-anchor="middle" font-size="12" fill="var(--text-secondary)">1 · Asset 资产</text>
+          <text id="v-loan" x="475" y="500" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="475" y="520" text-anchor="middle" font-size="12" fill="var(--text-secondary)">2 · Liability 融资</text>
+          <text id="v-prop" x="775" y="455" text-anchor="middle" font-size="17" font-weight="600" fill="var(--text-primary)">$0</text>
+          <text x="775" y="475" text-anchor="middle" font-size="12" fill="var(--text-secondary)">3 · Reinvest 投资增值</text>
+
+          <!-- ===== the self-financing return loop ===== -->
+          <path id="loop-path" class="flow-loop" d="M878 300 L906 300 L906 556 L34 556 L34 108 L166 108"
+                fill="none" stroke="var(--series-2)" stroke-width="2.2" marker-end="url(#ml-ar)"/>
+          <rect x="290" y="538" width="372" height="38" fill="var(--surface-1)"/>
+          <text x="476" y="552" text-anchor="middle" font-size="11.5" font-weight="700" letter-spacing="1.2" fill="var(--series-2)">INTERNAL SELF-FINANCING 内部自融资</text>
+          <text id="loop-amt" x="476" y="571" text-anchor="middle" font-size="12" fill="var(--text-secondary)"></text>
+
+          <text id="ml-scale" x="906" y="26" text-anchor="end" font-size="11" fill="var(--text-muted)"></text>
+        </svg>
+      </div>
+      <p class="note">Water levels are this calculator's own numbers — the same figures as the
+        table below, on one fixed scale that never changes as the years run, so a level moves
+        only when the balance does. The loop only compounds while the Airbnb net income rate
+        beats the loan rate; set the yield below the loan interest and watch the liability
+        bucket outgrow the assets.</p>
+    </section>
+
+    <section class="panel">
+      <h2>At year <span id="tile-year">1</span></h2>
+      <div class="tiles" id="result-tiles"></div>
+    </section>
+
+    <section class="panel">
+      <h2>End-of-year balances</h2>
+      <div class="table-scroll">
+        <table class="data" id="schedule">
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Income in</th>
+              <th>Borrowed</th>
+              <th>Rent</th>
+              <th>Interest</th>
+              <th>Back to assets</th>
+              <th>Asset</th>
+              <th>Liability</th>
+              <th>Properties</th>
+              <th>Net worth</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note">Illustrative only — not a projection of any specific portfolio. Assumes a
+        level asset growth rate, a constant loan-to-value cap, a fixed net rental yield with no
+        vacancy years, and no taxes or transaction costs. Real lenders re-underwrite, rental
+        yields vary, and property values can fall.</p>
+    </section>
+  </div>
+
+  <script src="js/maxlife-strategy.js?v=8079728d"></script>
+</body>
+</html>

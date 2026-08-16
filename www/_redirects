@@ -16,6 +16,10 @@
 /view/maxfund/franchise  /franchise/  301
 /view/maxfund/faq        /faq/        301
 
+# Calculators live under Education at /education/calculators/. The old top-level
+# /calculators/ paths and the /tools alias were retired 2026-08-13 at the owner's
+# request; they 404 rather than redirect. /education/calculators/ is the only URL.
+
 # Convenience aliases
 /service   /services/   301
 /product   /products/   301

@@ -1,0 +1,400 @@
+/* Shared styles for Finance Calculators */
+
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface-1: #fcfcfb;
+  --text-primary: #0b0b0b;
+  --text-secondary: #52514e;
+  --text-muted: #898781;
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+  --border: rgba(11, 11, 11, 0.10);
+  --accent: #2a78d6;
+  --series-1: #2a78d6;  /* contributions */
+  --series-2: #1baf7a;  /* interest */
+  --series-3: #eda100;
+  --series-4: #4a3aa7;
+  --good: #006300;
+  --crit: #d03b3b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface-1: #1a1a19;
+    --text-primary: #ffffff;
+    --text-secondary: #c3c2b7;
+    --text-muted: #898781;
+    --gridline: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255, 255, 255, 0.10);
+    --accent: #3987e5;
+    --series-1: #3987e5;
+    --series-2: #199e70;
+    --series-3: #c98500;
+    --series-4: #9085e9;
+    --good: #0ca30c;
+    --crit: #d03b3b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface-1: #1a1a19;
+  --text-primary: #ffffff;
+  --text-secondary: #c3c2b7;
+  --text-muted: #898781;
+  --gridline: #2c2c2a;
+  --baseline: #383835;
+  --border: rgba(255, 255, 255, 0.10);
+  --accent: #3987e5;
+  --series-1: #3987e5;
+  --series-2: #199e70;
+  --series-3: #c98500;
+  --series-4: #9085e9;
+  --good: #0ca30c;
+  --crit: #d03b3b;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  line-height: 1.5;
+}
+
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+/* Header / nav */
+.site-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.site-header h1 {
+  font-size: 1.35rem;
+  margin: 0;
+}
+.site-header a { color: inherit; text-decoration: none; }
+.site-header a:hover { text-decoration: underline; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.crumb { color: var(--text-muted); font-size: 0.9rem; }
+.crumb a { color: var(--text-secondary); }
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.theme-toggle:hover { color: var(--text-primary); }
+
+/* Cards (landing page) */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.card {
+  display: block;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  color: inherit;
+  text-decoration: none;
+}
+.card h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.card p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+a.card:hover { border-color: var(--accent); }
+/* Pin a card to the third column so it sits directly below the card above it.
+   Only while the grid is actually three wide; narrower, it flows normally. */
+@media (min-width: 860px) {
+  .card-grid .card.col-3 { grid-column: 3; }
+}
+.card.soon { opacity: 0.55; }
+.card.soon .tag {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+/* Panels */
+.panel {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.panel h2 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Form */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px 18px;
+}
+.field label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.field input, .field select {
+  width: 100%;
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--page);
+  border: 1px solid var(--baseline);
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+.field input:focus, .field select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+/* Scenario columns (A/B comparison forms) */
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px 24px;
+}
+.scenario-col .field { margin-bottom: 12px; }
+.scenario-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+}
+.scenario-title .swatch {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+/* Two-column A/B results */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px 28px;
+}
+.result-col {
+  border-top: 3px solid var(--baseline);
+  padding-top: 12px;
+}
+.result-col.col-a { border-top-color: var(--series-1); }
+.result-col.col-b { border-top-color: var(--series-2); }
+.result-col .tile { margin-bottom: 16px; }
+.tile.verdict .value { font-size: 2rem; }
+.tile.verdict.ok .value { color: var(--good); }
+.tile.verdict.bad .value { color: var(--crit); }
+
+/* Stat tiles */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+.tile .label { font-size: 0.82rem; color: var(--text-secondary); }
+.tile .value {
+  font-size: 1.7rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+.tile .sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.tile.hero .value { font-size: 2.6rem; }
+
+/* Chart */
+.chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.legend {
+  display: flex;
+  gap: 18px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+.legend .key { display: flex; align-items: center; gap: 6px; }
+.legend .swatch {
+  width: 10px; height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.chart-box { position: relative; }
+.chart-box svg { display: block; width: 100%; height: auto; }
+
+.chart-tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  min-width: 150px;
+  display: none;
+  z-index: 5;
+}
+.chart-tip .tip-year { font-weight: 600; margin-bottom: 4px; }
+.chart-tip .tip-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  color: var(--text-secondary);
+}
+.chart-tip .tip-row .v {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.chart-tip .tip-row .k { display: flex; align-items: center; gap: 6px; }
+
+/* Table */
+.table-scroll { overflow-x: auto; }
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+table.data th, table.data td {
+  text-align: right;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--gridline);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+table.data th:first-child, table.data td:first-child { text-align: left; }
+table.data th {
+  color: var(--text-secondary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--baseline);
+}
+table.data tr.hl td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+.note { color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; }
+
+/* Static text standing in for an input (points elsewhere for the value).
+   Borrows the input box metrics — same padding, a transparent border in place
+   of the real one — so it lines up with the fields beside it. */
+.field-static {
+  display: flex;
+  align-items: center;
+  padding: 7px 0;
+  border: 1px solid transparent;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Explainer box with a worked example */
+.explain {
+  background: var(--page);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-top: 18px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+.explain h3 { margin: 0 0 8px; font-size: 0.95rem; color: var(--text-primary); }
+.explain p { margin: 0 0 10px; line-height: 1.6; }
+.explain p:last-child { margin-bottom: 0; }
+.explain b { color: var(--text-primary); }
+.explain ul { margin: 0 0 10px; padding-left: 18px; }
+.explain li { margin-bottom: 5px; line-height: 1.55; }
+.explain .step-figs { font-variant-numeric: tabular-nums; }
+.explain .worked {
+  margin: 12px 0;
+  padding: 12px 16px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.explain .worked-head {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+/* Small secondary button (table actions) */
+.btn-sm {
+  border: 1px solid var(--border);
+  background: var(--surface-1);
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+.btn-sm:hover { color: var(--text-primary); border-color: var(--baseline); }
+
+/* Editable cells inside a schedule table */
+table.data th.col-edit::after {
+  content: " ✎";
+  color: var(--text-muted);
+  font-weight: 400;
+}
+table.data td.cell-edit { padding: 3px 6px; }
+input.cell-input {
+  width: 100%;
+  max-width: 130px;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+/* Spinners crowd a dense table; typing is the intended interaction */
+input.cell-input::-webkit-outer-spin-button,
+input.cell-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input.cell-input { -moz-appearance: textfield; }
+input.cell-input:hover { border-color: var(--baseline); }
+input.cell-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  background: var(--page);
+}
+input.cell-input.custom {
+  border-color: var(--accent);
+  font-weight: 600;
+}

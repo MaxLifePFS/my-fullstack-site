@@ -6,4 +6,9 @@
   <url><loc>https://maxlife.cc/education/</loc><priority>0.8</priority></url>
   <url><loc>https://maxlife.cc/franchise/</loc><priority>0.8</priority></url>
   <url><loc>https://maxlife.cc/faq/</loc><priority>0.7</priority></url>
+  <url><loc>https://maxlife.cc/education/calculators/</loc><priority>0.8</priority></url>
+  <url><loc>https://maxlife.cc/education/calculators/compound-interest.html</loc><priority>0.6</priority></url>
+  <url><loc>https://maxlife.cc/education/calculators/spend-vs-borrow.html</loc><priority>0.6</priority></url>
+  <url><loc>https://maxlife.cc/education/calculators/three-buckets.html</loc><priority>0.6</priority></url>
+  <url><loc>https://maxlife.cc/education/calculators/maxlife-strategy.html</loc><priority>0.6</priority></url>
 </urlset>
