@@ -483,12 +483,13 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 }
 .book-cover {
   display: block;
-  width: min(282px, 78%);
+  width: min(344px, 88%);
   filter: drop-shadow(0 18px 34px rgba(0,0,0,.55));
   transition: transform .25s ease;
 }
 .book-cover:hover { transform: translateY(-4px); }
-.book-cover img { display: block; width: 100%; height: auto; }
+/* held to the height the hero match allows, widened across it */
+.book-cover img { display: block; width: 100%; height: auto; aspect-ratio: 344 / 448; object-fit: fill; }
 .book-body { display: grid; justify-items: center; }
 .book-flag {
   display: inline-block; margin: 0;
@@ -500,7 +501,7 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 .book-tag i { font-style: italic; }
 .book-cta { display: grid; justify-items: center; gap: 10px; }
 @media (max-width: 620px) {
-  .book-cover { width: min(230px, 72%); }
+  .book-cover { width: min(262px, 82%); }
 }
 
 /* the equation card, moved here from the home hero */
