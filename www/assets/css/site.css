@@ -468,3 +468,49 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 }
 .skip:focus { left: 0; }
 :focus-visible { outline: 3px solid var(--emerald-lt); outline-offset: 2px; border-radius: 4px; }
+
+/* ---------- hero book card ---------- */
+.book-card {
+  display: grid;
+  grid-template-columns: minmax(132px, 37%) 1fr;
+  gap: clamp(18px, 2.4vw, 28px);
+  align-items: start;
+  background: rgba(255,255,255,.055);
+  border: 1px solid var(--line-dark);
+  border-radius: var(--radius-lg);
+  padding: clamp(22px, 3vw, 32px);
+  backdrop-filter: blur(6px);
+}
+.book-cover {
+  display: block; border-radius: 10px; overflow: hidden;
+  box-shadow: 0 18px 40px rgba(0,0,0,.45);
+  transition: transform .25s ease;
+}
+.book-cover:hover { transform: translateY(-3px); }
+.book-cover img { display: block; width: 100%; height: auto; }
+.book-flag {
+  display: inline-block; margin: 0 0 12px;
+  font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--amber); border: 1px solid rgba(223,161,60,.45);
+  border-radius: 999px; padding: 3px 11px;
+}
+.book-title {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: clamp(1.12rem, 2.1vw, 1.46rem); line-height: 1.14;
+  color: #fff; margin: 0 0 .3em;
+}
+.book-title em { font-style: normal; color: var(--amber); display: block; }
+.book-tag { font-size: .92rem; color: rgba(255,255,255,.8); margin: 0 0 .7em; }
+.book-tag i { font-style: italic; }
+.book-sub { font-size: .85rem; line-height: 1.66; color: rgba(255,255,255,.6); margin: 0 0 .85em; }
+.book-by { font-family: var(--font-display); font-size: .88rem; color: rgba(255,255,255,.74); margin: 0 0 1em; }
+.book-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+.book-price { font-size: .79rem; color: rgba(255,255,255,.55); }
+.book-note { font-size: .79rem; color: rgba(255,255,255,.5); margin: .9em 0 0; }
+@media (max-width: 620px) {
+  .book-card { grid-template-columns: 1fr; justify-items: start; }
+  .book-cover { max-width: 180px; }
+}
+
+/* the equation card, moved here from the home hero */
+.eq-card-wrap { max-width: 520px; margin: 32px auto 0; }
