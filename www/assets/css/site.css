@@ -469,25 +469,27 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 .skip:focus { left: 0; }
 :focus-visible { outline: 3px solid var(--emerald-lt); outline-offset: 2px; border-radius: 4px; }
 
-/* ---------- hero book card ---------- */
+/* ---------- hero book card (cover on top, copy beneath) ---------- */
 .book-card {
   display: grid;
-  grid-template-columns: minmax(96px, 29%) 1fr;
-  gap: clamp(18px, 2.4vw, 28px);
-  align-items: start;
+  justify-items: center;
+  text-align: center;
+  gap: clamp(20px, 2.6vw, 28px);
   background: rgba(255,255,255,.055);
   border: 1px solid var(--line-dark);
   border-radius: var(--radius-lg);
-  padding: clamp(22px, 3vw, 32px);
+  padding: clamp(26px, 3.2vw, 36px);
   backdrop-filter: blur(6px);
 }
 .book-cover {
   display: block;
-  filter: drop-shadow(0 14px 26px rgba(0,0,0,.5));
+  width: min(272px, 76%);
+  filter: drop-shadow(0 18px 34px rgba(0,0,0,.55));
   transition: transform .25s ease;
 }
-.book-cover:hover { transform: translateY(-3px); }
+.book-cover:hover { transform: translateY(-4px); }
 .book-cover img { display: block; width: 100%; height: auto; }
+.book-body { display: grid; justify-items: center; }
 .book-flag {
   display: inline-block; margin: 0 0 12px;
   font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
@@ -496,20 +498,17 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 }
 .book-title {
   font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(1.12rem, 2.1vw, 1.46rem); line-height: 1.14;
-  color: #fff; margin: 0 0 .3em;
+  font-size: clamp(1.3rem, 2.5vw, 1.72rem); line-height: 1.14;
+  color: #fff; margin: 0 0 .34em;
 }
 .book-title em { font-style: normal; color: var(--amber); display: block; }
-.book-tag { font-size: .92rem; color: rgba(255,255,255,.8); margin: 0 0 .7em; }
+.book-tag { font-size: .95rem; color: rgba(255,255,255,.8); margin: 0 0 1em; }
 .book-tag i { font-style: italic; }
-.book-sub { font-size: .85rem; line-height: 1.66; color: rgba(255,255,255,.6); margin: 0 0 .85em; }
-.book-by { font-family: var(--font-display); font-size: .88rem; color: rgba(255,255,255,.74); margin: 0 0 1em; }
-.book-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
-.book-price { font-size: .79rem; color: rgba(255,255,255,.55); }
-.book-note { font-size: .79rem; color: rgba(255,255,255,.5); margin: .9em 0 0; }
+.book-cta { display: grid; justify-items: center; gap: 10px; }
+.book-price { font-size: .82rem; color: rgba(255,255,255,.55); }
+.book-note { font-size: .8rem; line-height: 1.6; color: rgba(255,255,255,.5); margin: 1em 0 0; max-width: 34ch; }
 @media (max-width: 620px) {
-  .book-card { grid-template-columns: 1fr; justify-items: start; }
-  .book-cover { max-width: 150px; }
+  .book-cover { width: min(230px, 72%); }
 }
 
 /* the equation card, moved here from the home hero */
