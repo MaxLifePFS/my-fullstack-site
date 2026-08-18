@@ -483,7 +483,7 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 }
 .book-cover {
   display: block;
-  width: min(236px, 72%);
+  width: min(282px, 78%);
   filter: drop-shadow(0 18px 34px rgba(0,0,0,.55));
   transition: transform .25s ease;
 }
@@ -496,13 +496,7 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
   color: var(--amber); border: 1px solid rgba(223,161,60,.45);
   border-radius: 999px; padding: 3px 11px;
 }
-.book-title {
-  font-family: var(--font-display); font-weight: 700;
-  font-size: clamp(1.3rem, 2.5vw, 1.72rem); line-height: 1.14;
-  color: #fff; margin: 0 0 .34em;
-}
-.book-title em { font-style: normal; color: var(--amber); display: block; }
-.book-tag { font-size: .95rem; color: rgba(255,255,255,.8); margin: 0 0 1em; }
+.book-tag { font-size: 1rem; color: rgba(255,255,255,.8); margin: 0 0 1em; }
 .book-tag i { font-style: italic; }
 .book-cta { display: grid; justify-items: center; gap: 10px; }
 @media (max-width: 620px) {
