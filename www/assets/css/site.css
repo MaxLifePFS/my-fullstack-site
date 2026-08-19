@@ -496,6 +496,9 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
   color: var(--amber); border: 1px solid rgba(223,161,60,.45);
   border-radius: 999px; padding: 3px 11px;
 }
+/* CJK needs a heavier face and tighter tracking than the latin badge
+   to read as bold at this size */
+.book-flag .zh { font-weight: 900; font-size: 1.1em; letter-spacing: .06em; }
 .book-tag { font-size: 1rem; color: rgba(255,255,255,.8); margin: 0 0 1em; }
 .book-tag i { font-style: italic; }
 .book-cta { display: grid; justify-items: center; gap: 10px; }
