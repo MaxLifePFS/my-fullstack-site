@@ -129,6 +129,18 @@ section h2 small { font-weight: 500; color: var(--muted); font-size: .85rem; }
 #searchBox:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56,189,248,.18); }
 #searchBox::placeholder { color: #55688f; }
 
+.dlrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.dlbtn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 9px 16px; color: var(--ink);
+  font-family: var(--font); font-weight: 600; font-size: .9rem; cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.dlbtn:hover:not(:disabled) { border-color: var(--accent); background: var(--card-hover); }
+.dlbtn:disabled { opacity: .6; cursor: default; }
+.dlnote { color: var(--muted); font-size: .78rem; }
+
 .empty { color: var(--muted); font-size: .9rem; background: var(--bg-2); border: 1px dashed var(--line); border-radius: var(--radius); padding: 14px 18px; }
 #msg { text-align: center; color: var(--muted); font-size: .85rem; min-height: 1.3em; margin-bottom: 10px; }
 #msg.err { color: var(--red); }
@@ -172,6 +184,10 @@ footer { border-top: 1px solid var(--line); padding: 20px 0 34px; text-align: ce
       <div id="doneList"></div>
     </section>
     <input type="search" id="searchBox" placeholder="Search actions… ( / to focus, Esc clears — searches active + done )" autocomplete="off" spellcheck="false">
+    <div class="dlrow">
+      <button type="button" id="dlBtn" class="dlbtn">⬇ <span id="dlLabel">Download all records</span></button>
+      <span class="dlnote">Saves a CSV of every action — active, in progress, on hold and done.</span>
+    </div>
   </div>
 </main>
 
@@ -335,6 +351,7 @@ function render() {
   done.forEach(it => doneList.appendChild(itemRow(it)));
   document.getElementById('activeCount').textContent = active.length ? active.length + ' item' + (active.length > 1 ? 's' : '') : '';
   document.getElementById('doneCount').textContent = done.length ? done.length + ' item' + (done.length > 1 ? 's' : '') : '';
+  updateDlLabel();
 }
 
 // ---- add ----
@@ -367,6 +384,60 @@ document.addEventListener('keydown', e => {
       !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
     e.preventDefault(); searchBox.focus();
   }
+});
+
+// ---- download a full backup ----
+// Every record, every status, as CSV. Pulls a fresh copy from the API first so
+// the file is current; if that call fails it falls back to what is on screen.
+const CSV_COLS = [
+  ['title', 'Title'], ['status', 'Status'], ['priority', 'Priority'], ['due', 'Due'],
+  ['notes', 'Notes'], ['added', 'Added'], ['completedAt', 'Completed'], ['id', 'ID']
+];
+const STATUS_LABEL = { todo: 'Not started', doing: 'In progress', hold: 'On hold', done: 'Done' };
+
+function csvCell(v) {
+  const s = v == null ? '' : String(v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function buildCsv(rows) {
+  const lines = [CSV_COLS.map(c => csvCell(c[1])).join(',')];
+  rows.forEach(it => {
+    lines.push(CSV_COLS.map(c =>
+      csvCell(c[0] === 'status' ? (STATUS_LABEL[it.status] || it.status) : it[c[0]])
+    ).join(','));
+  });
+  // BOM keeps Excel from mangling accented and Chinese text
+  return '\uFEFF' + lines.join('\r\n') + '\r\n';
+}
+
+function updateDlLabel() {
+  const n = items.length;
+  document.getElementById('dlLabel').textContent =
+    'Download all ' + n + ' record' + (n === 1 ? '' : 's');
+}
+
+const dlBtn = document.getElementById('dlBtn');
+dlBtn.addEventListener('click', async () => {
+  dlBtn.disabled = true;
+  let rows = items;
+  try {
+    const r = await fetch(API, { cache: 'no-store' });
+    const d = await r.json();
+    if (r.ok && Array.isArray(d.actions)) { items = d.actions; rows = d.actions; render(); }
+  } catch (e) { /* offline: fall back to the copy already loaded */ }
+
+  const stamp = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Chicago' }).format(new Date());
+  const name = 'action-tracker-' + stamp + '.csv';
+  const url = URL.createObjectURL(new Blob([buildCsv(rows)], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  dlBtn.disabled = false;
+  updateDlLabel();
+  setMsg('Saved ' + rows.length + ' record' + (rows.length === 1 ? '' : 's') + ' to ' + name);
 });
 
 load();
