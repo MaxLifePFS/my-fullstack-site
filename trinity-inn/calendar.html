@@ -55,7 +55,10 @@
   /* Tape chart */
   .chart-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
   .chart-scroll { overflow-x: auto; }
-  .grid-row { display: grid; }
+  /* min-width so each row spans its full track width: a row box clipped to the
+     container width would paint its background short, leaving the last days of
+     a long month as white text on white. */
+  .grid-row { display: grid; min-width: max-content; }
   .room-cell { position: sticky; left: 0; z-index: 3; background: #fff; border-right: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; font-weight: 600; font-size: .9rem; white-space: nowrap; }
   .head .room-cell { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
   .day-head { grid-row: 1; text-align: center; padding: 7px 0 6px; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums; }
