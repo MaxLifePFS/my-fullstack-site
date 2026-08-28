@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Tuition Reduction — Finance Calculators</title>
+  <link rel="stylesheet" href="css/style.css?v=76ea79c8">
+  <script src="js/common.js?v=efccdc49"></script>
+  <style>
+    /* Page-specific: one label, two owners side by side */
+    .ps-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(92px, 132px) minmax(92px, 132px);
+      gap: 9px 14px;
+      align-items: center;
+    }
+    .ps-head {
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      text-align: center;
+      padding-bottom: 2px;
+    }
+    .ps-grid .ps-label { font-size: 0.88rem; color: var(--text-primary); }
+    .ps-grid input {
+      width: 100%;
+      font: inherit;
+      font-size: 0.92rem;
+      text-align: right;
+      color: var(--text-primary);
+      background: var(--page);
+      border: 1px solid var(--baseline);
+      border-radius: 8px;
+      padding: 6px 9px;
+    }
+    .ps-grid input:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+
+    /* A group heading spanning the whole row */
+    .ps-group {
+      grid-column: 1 / -1;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--gridline);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .ps-group:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    .ps-group .hint { font-weight: 400; color: var(--text-muted); }
+
+    /* The symbol a row feeds in the equation */
+    .sym {
+      display: inline-block;
+      min-width: 1.35em;
+      margin-right: 7px;
+      text-align: center;
+      font-style: italic;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Live subtotal row — this is what A and a actually are */
+    .ps-sub { font-size: 0.85rem; color: var(--text-secondary); }
+    .ps-sub-val {
+      text-align: right;
+      font-size: 0.92rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      color: var(--accent);
+      padding-right: 9px;
+    }
+    .ps-sub-val.muted { color: var(--text-muted); }
+
+    .coa-field { max-width: 260px; }
+
+    /* The equation, stated once at the top of the results */
+    .eq {
+      text-align: center;
+      font-size: 1.05rem;
+      line-height: 1.9;
+      margin: 0 0 16px;
+      color: var(--text-primary);
+    }
+    .eq .aid { color: var(--good); font-weight: 600; }
+    .eq .efc { color: var(--crit); font-weight: 700; font-size: 1.15rem; }
+    .eq .term { white-space: nowrap; }
+    .eq .sym { min-width: 0; margin: 0; }
+
+    .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <h1><a href="index.html">College Tuition Reduction</a></h1>
+      <div class="header-right">
+        <span class="crumb"><a href="index.html">Home</a> / Tuition Reduction</span>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark">Theme</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Step 1 — what the school costs</h2>
+      <div class="field coa-field">
+        <label for="coa">Cost of attendance ($ / year)</label>
+        <input type="number" id="coa" value="80000" min="0" step="1000">
+      </div>
+      <p class="note">Tuition, fees, room, board, books and travel — the school's full published
+        figure for one year, not tuition alone.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Step 2 — income and assets, by owner</h2>
+      <div class="ps-grid">
+        <div class="ps-group">Income</div>
+        <div class="ps-head" style="grid-row: 2; grid-column: 2;">Parent</div>
+        <div class="ps-head" style="grid-row: 2; grid-column: 3;">Student</div>
+
+        <label class="ps-label" for="p-agi"><span class="sym">I&nbsp;/&nbsp;i</span>Adjusted Gross Income (AGI)</label>
+        <input type="number" id="p-agi" value="150000" min="0" step="1000">
+        <input type="number" id="s-agi" value="5000" min="0" step="500">
+
+        <div class="ps-group">College assets <span class="hint">— the pool the formula counts</span></div>
+
+        <label class="ps-label" for="p-bank">Bank savings</label>
+        <input type="number" id="p-bank" value="50000" min="0" step="1000">
+        <input type="number" id="s-bank" value="10000" min="0" step="500">
+
+        <label class="ps-label" for="p-stock">Stock / mutual fund / securities</label>
+        <input type="number" id="p-stock" value="150000" min="0" step="1000">
+        <input type="number" id="s-stock" value="5000" min="0" step="500">
+
+        <label class="ps-label" for="p-prop">Equity in investment properties</label>
+        <input type="number" id="p-prop" value="100000" min="0" step="1000">
+        <input type="number" id="s-prop" value="0" min="0" step="500">
+
+        <div class="ps-sub"><span class="sym">A&nbsp;/&nbsp;a</span>Net college asset</div>
+        <div class="ps-sub-val" id="p-college-sub">—</div>
+        <div class="ps-sub-val" id="s-college-sub">—</div>
+
+        <div class="ps-group">Non-college assets <span class="hint">— the pool it does not</span></div>
+
+        <label class="ps-label" for="p-ins">Life insurance cash value</label>
+        <input type="number" id="p-ins" value="80000" min="0" step="1000">
+        <input type="number" id="s-ins" value="0" min="0" step="500">
+
+        <label class="ps-label" for="p-ret">Retirement savings</label>
+        <input type="number" id="p-ret" value="400000" min="0" step="1000">
+        <input type="number" id="s-ret" value="0" min="0" step="500">
+
+        <label class="ps-label" for="p-home">Equity in primary residence</label>
+        <input type="number" id="p-home" value="300000" min="0" step="1000">
+        <input type="number" id="s-home" value="0" min="0" step="500">
+
+        <div class="ps-sub">Not assessed — costs you nothing</div>
+        <div class="ps-sub-val muted" id="p-shelter-sub">—</div>
+        <div class="ps-sub-val muted" id="s-shelter-sub">—</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step 3 — assessment rates</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="r-pi">Parent income &nbsp;<i>I</i> (%)</label>
+          <input type="number" id="r-pi" value="20" min="0" max="100" step="0.5">
+        </div>
+        <div class="field">
+          <label for="r-pa">Parent college asset &nbsp;<i>A</i> (%)</label>
+          <input type="number" id="r-pa" value="6" min="0" max="100" step="0.1">
+        </div>
+        <div class="field">
+          <label for="r-si">Student income &nbsp;<i>i</i> (%)</label>
+          <input type="number" id="r-si" value="50" min="0" max="100" step="0.5">
+        </div>
+        <div class="field">
+          <label for="r-sa">Student college asset &nbsp;<i>a</i> (%)</label>
+          <input type="number" id="r-sa" value="20" min="0" max="100" step="0.5">
+        </div>
+      </div>
+      <p class="note">A student's dollars are assessed far harder than a parent's — which is why
+        who holds an asset matters as much as how much of it there is.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Your share, and what the school covers</h2>
+
+      <p class="eq">
+        <span class="efc">EFC</span> =
+        <span class="term"><span class="sym">I</span>×<span id="eq-rpi">20%</span></span> +
+        <span class="term"><span class="sym">A</span>×<span id="eq-rpa">6%</span></span> +
+        <span class="term"><span class="sym">i</span>×<span id="eq-rsi">50%</span></span> +
+        <span class="term"><span class="sym">a</span>×<span id="eq-rsa">20%</span></span>
+        <br>
+        <span class="aid">Financial aid</span> = Cost of attendance − EFC
+      </p>
+
+      <div class="tiles" id="result-tiles"></div>
+
+      <div class="explain">
+        <h3>Worked out with your numbers</h3>
+        <div id="worked"></div>
+      </div>
+
+      <div class="explain">
+        <h3>The lever — what moving a dollar is worth</h3>
+        <p>Every dollar sitting in the college pool costs you its assessment rate, each year the
+          school looks. Move it to the non-college pool and that cost goes to zero. Because the
+          rates differ by owner, the same dollar is worth very different amounts:</p>
+        <table class="lever" id="lever-table"></table>
+        <p style="margin-top:12px">Income is the harder one — <i>I</i> and <i>i</i> are assessed
+          at the highest rates of all, and unlike assets you cannot simply move them. That is why
+          the planning has to happen <b>before</b> the year the formula looks at, not after.</p>
+      </div>
+
+      <p class="note">One year at one school. Which assets fall on which side is not universal —
+        the federal FAFSA formula and the CSS Profile used by many private colleges draw the line
+        differently, notably on home equity — so set the categories and rates to match the formula
+        your schools actually use. Aid is floored at zero: when EFC exceeds the cost of attendance
+        there is no need-based award, and a larger EFC does not create a bill beyond the cost.</p>
+    </section>
+  </div>
+
+  <script src="js/tuition.js?v=8fc40537"></script>
+</body>
+</html>
