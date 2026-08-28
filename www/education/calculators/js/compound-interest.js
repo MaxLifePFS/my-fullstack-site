@@ -1,4 +1,4 @@
-/* Mutual Fund/Savings Compounding Power
+/* Mutual Fund Compounding Power
    Two phases: contribute through year N, then draw a yearly income until the
    money runs out. Withdrawals come from a taxable account, so each one is part
    return of contributions (never taxed) and part gain (taxed) — split pro-rata,
