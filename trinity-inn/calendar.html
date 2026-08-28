@@ -91,14 +91,21 @@
   .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
   .banner { background: #fbeeea; border: 1px solid #e6c8bf; color: var(--danger); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: .9rem; font-weight: 600; }
 
-  /* Portal card */
-  .portal-card { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
+  /* Portal cards */
+  .portal-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .portal-card { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 14px; padding: 14px 18px; text-decoration: none; color: inherit; transition: box-shadow .15s, transform .15s; }
   .portal-card:hover { box-shadow: 0 4px 14px rgba(38,37,31,.10); transform: translateY(-1px); }
   .portal-card img { width: 40px; height: 40px; border-radius: 8px; flex: none; }
   .portal-card .pc-text { margin-right: auto; }
   .portal-card .pc-title { display: block; font-family: var(--font-serif); font-size: 1.05rem; font-weight: 700; color: var(--green-dark); }
   .portal-card .pc-sub { display: block; font-size: .85rem; color: var(--muted); margin-top: 2px; }
   .portal-card .pc-go { font-size: .86rem; font-weight: 600; color: var(--green); white-space: nowrap; }
+  .portal-card .pc-icon { width: 40px; height: 40px; border-radius: 8px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: rgba(46, 93, 67, .10); }
+  .portal-card.airbnb { border-left-color: #ff5a5f; }
+  .portal-card.airbnb:hover { border-color: #ff5a5f; }
+  .portal-card.airbnb .pc-icon { background: rgba(255, 90, 95, .12); }
+  .portal-card.airbnb .pc-go { color: #e0484d; }
+  @media (max-width: 860px) { .portal-cards { grid-template-columns: 1fr; } }
 
   /* Modal */
   .overlay { position: fixed; inset: 0; z-index: 20; background: rgba(31, 66, 48, .45); display: none; align-items: center; justify-content: center; padding: 20px; }
@@ -129,14 +136,24 @@
 </div>
 
 <div class="wrap">
-  <a class="portal-card" href="https://trinity.maxlife.cc/">
-    <img src="assets/favicon.png" alt="">
-    <span class="pc-text">
-      <span class="pc-title">Trinity Ranch Portal</span>
-      <span class="pc-sub">Rooms &amp; rates, gallery, payments, and contact info</span>
-    </span>
-    <span class="pc-go">Open site &#8250;</span>
-  </a>
+  <div class="portal-cards">
+    <a class="portal-card" href="https://trinity.maxlife.cc/">
+      <img src="assets/favicon.png" alt="">
+      <span class="pc-text">
+        <span class="pc-title">Trinity Ranch Portal</span>
+        <span class="pc-sub">Rooms &amp; rates, gallery, payments, and contact info</span>
+      </span>
+      <span class="pc-go">Open site &#8250;</span>
+    </a>
+    <a class="portal-card airbnb" href="https://www.airbnb.com/users/show/273543568" target="_blank" rel="noopener">
+      <span class="pc-icon" aria-hidden="true">&#127968;</span>
+      <span class="pc-text">
+        <span class="pc-title">Book on Airbnb</span>
+        <span class="pc-sub">Availability, pricing, and reviews on our Airbnb profile</span>
+      </span>
+      <span class="pc-go">Open Airbnb &#8250;</span>
+    </a>
+  </div>
 
   <div class="banner hidden" id="errBanner"></div>
   <div class="chips" id="chips"></div>
