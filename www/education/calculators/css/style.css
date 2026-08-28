@@ -363,6 +363,9 @@ table.data tr.hl td { background: color-mix(in srgb, var(--accent) 10%, transpar
   cursor: pointer;
 }
 .btn-sm:hover { color: var(--text-primary); border-color: var(--baseline); }
+/* a row of link-buttons inside a card (the card itself is not a link) */
+.card-links { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+a.btn-sm { display: inline-block; text-decoration: none; }
 
 /* Editable cells inside a schedule table */
 table.data th.col-edit::after {
