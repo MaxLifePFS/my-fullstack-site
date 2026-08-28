@@ -277,6 +277,8 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
   letter-spacing: .12em; color: var(--emerald); display: block; margin-bottom: 1em;
 }
 .card-ico { font-size: 1.9rem; line-height: 1; display: block; margin-bottom: .55em; }
+/* an svg mark sits in the same box as the emoji icons beside it */
+.card-ico svg { width: 1em; height: 1em; display: block; }
 
 .sec-deep .card { background: rgba(255,255,255,.05); border-color: var(--line-dark); box-shadow: none; }
 .sec-deep .card:hover { border-color: rgba(223,161,60,.4); }
