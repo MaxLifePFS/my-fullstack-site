@@ -6,7 +6,7 @@
  * where I/i are the parent's and student's AGI, and A/a are their net college
  * assets. What lands in A and a depends on the school type chosen in Step 1:
  *
- *   Public   A = bank + securities + investment-property equity + 529
+ *   Public   A = bank + securities + rental-property equity + 529
  *
  *   Private  A = the same, plus
  *                  primary-residence equity, capped at capMult × parent AGI
