@@ -104,13 +104,15 @@
     /* The equation, stated once at the top of the results */
     .eq {
       text-align: center;
-      font-size: 1.05rem;
-      line-height: 1.9;
-      margin: 0 0 16px;
+      font-size: clamp(1.15rem, 2.7vw, 1.75rem);
+      font-weight: 700;
+      line-height: 1.85;
+      margin: 6px 0 26px;
       color: var(--text-primary);
     }
-    .eq .aid { color: var(--good); font-weight: 600; }
-    .eq .efc { color: var(--crit); font-weight: 700; font-size: 1.15rem; }
+    .eq .aid { color: var(--good); }
+    .eq .efc { color: var(--crit); font-size: 1.1em; }
+    /* keep each term whole; the line may wrap between terms on a narrow screen */
     .eq .term { white-space: nowrap; }
     .eq .sym { min-width: 0; margin: 0; }
 
