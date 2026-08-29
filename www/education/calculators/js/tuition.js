@@ -21,8 +21,21 @@ function sumRows(who, rows) {
   return rows.reduce((t, row) => t + numInput(`${who}-${row}`, 0, 0, 1e12), 0);
 }
 
+/* Which formula the schools on the list actually run. Captured now; it does not
+   feed the equation yet. */
+function collegeType() {
+  const picked = document.querySelector('input[name="ctype"]:checked');
+  return picked ? picked.value : "public";
+}
+
+const CTYPE_NOTE = {
+  public: "Public schools generally run the federal FAFSA formula on its own.",
+  private: "Many private schools add the CSS Profile on top of FAFSA, and it draws the asset line differently — most notably by counting equity in the primary residence. If yours does, move that row up into the college pool.",
+};
+
 function readModel() {
   const coa = numInput("coa", 0, 0, 1e9);
+  const ctype = collegeType();
 
   const rate = {
     pi: numInput("r-pi", 0, 0, 100) / 100,
@@ -53,7 +66,7 @@ function readModel() {
   const aid = Math.max(0, coa - efc);
 
   return {
-    coa, rate, parent, student, term, efc, aid,
+    coa, ctype, rate, parent, student, term, efc, aid,
     parentShare: term.I + term.A,
     studentShare: term.i + term.a,
     covered: coa > 0 ? (aid / coa) * 100 : 0,
@@ -119,6 +132,8 @@ function renderLever(m) {
 function render() {
   const m = readModel();
 
+  document.getElementById("ctype-note").textContent = CTYPE_NOTE[m.ctype];
+
   /* live subtotals beside the inputs — these are A and a */
   document.getElementById("p-college-sub").textContent = fmtCurrency(m.parent.college);
   document.getElementById("s-college-sub").textContent = fmtCurrency(m.student.college);
@@ -147,7 +162,7 @@ function render() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("input[type=number]").forEach((el) => {
+  document.querySelectorAll('input[type=number], input[name="ctype"]').forEach((el) => {
     el.addEventListener("input", render);
   });
   render();

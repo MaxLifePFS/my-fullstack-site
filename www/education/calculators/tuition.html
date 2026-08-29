@@ -89,6 +89,21 @@
     .eq .sym { min-width: 0; margin: 0; }
 
     .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Segmented radio — reads as one control rather than two loose dots */
+    .seg { display: inline-flex; gap: 0; border: 1px solid var(--baseline); border-radius: 9px; overflow: hidden; }
+    .seg label { position: relative; cursor: pointer; }
+    .seg input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .seg span {
+      display: block;
+      padding: 7px 20px;
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      background: var(--page);
+    }
+    .seg label + label span { border-left: 1px solid var(--baseline); }
+    .seg input:checked + span { background: var(--accent); color: #fff; font-weight: 600; }
+    .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
   </style>
 </head>
 <body>
@@ -102,7 +117,16 @@
     </header>
 
     <section class="panel">
-      <h2>Step 1 — what the school costs</h2>
+      <h2>Step 1 — what kind of school</h2>
+      <div class="seg" role="radiogroup" aria-label="College type">
+        <label><input type="radio" name="ctype" value="public" checked><span>Public</span></label>
+        <label><input type="radio" name="ctype" value="private"><span>Private</span></label>
+      </div>
+      <p class="note" id="ctype-note"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Step 2 — what the school costs</h2>
       <div class="field coa-field">
         <label for="coa">Cost of attendance ($ / year)</label>
         <input type="number" id="coa" value="80000" min="0" step="1000">
@@ -112,7 +136,7 @@
     </section>
 
     <section class="panel">
-      <h2>Step 2 — income and assets, by owner</h2>
+      <h2>Step 3 — income and assets, by owner</h2>
       <div class="ps-grid">
         <div class="ps-group">Income</div>
         <div></div>
@@ -166,7 +190,7 @@
     </section>
 
     <section class="panel">
-      <h2>Step 3 — assessment rates</h2>
+      <h2>Step 4 — assessment rates</h2>
       <div class="form-grid">
         <div class="field">
           <label for="r-pi">Parent income &nbsp;<i>I</i> (%)</label>
@@ -232,6 +256,6 @@
     </section>
   </div>
 
-  <script src="js/tuition.js?v=b33add33"></script>
+  <script src="js/tuition.js?v=d73fc294"></script>
 </body>
 </html>
