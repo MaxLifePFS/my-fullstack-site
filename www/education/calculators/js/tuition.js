@@ -8,13 +8,13 @@
  *   i = student AGI         a = student net college asset
  *
  * "Net college asset" is the sum of the counted pool — bank savings, securities,
- * investment-property equity and 529 balances. The non-college pool (life insurance cash
- * value, retirement, primary-residence equity) carries a rate of zero by
+ * investment-property equity and 529 balances. The non-college pool (life insurance cash value,
+ * retirement, primary-residence equity, business and farm assets) carries a rate of zero by
  * definition: it never enters the equation, which is the whole lever.
  */
 
 const COLLEGE_ROWS = ["bank", "stock", "prop", "c529"];
-const SHELTER_ROWS = ["ins", "ret", "home"];
+const SHELTER_ROWS = ["ins", "ret", "home", "biz", "farm"];
 
 /* Sum a set of rows for one owner ("p" or "s") */
 function sumRows(who, rows) {
