@@ -24,6 +24,7 @@
       padding-bottom: 2px;
     }
     .ps-grid .ps-label { font-size: 0.88rem; color: var(--text-primary); }
+    .ps-grid .ps-label.sub-row { padding-left: 18px; color: var(--text-secondary); font-size: 0.85rem; }
     .ps-grid input {
       width: 100%;
       font: inherit;
@@ -61,7 +62,7 @@
       color: var(--accent);
     }
 
-    /* Live subtotal row — this is what A and a actually are */
+    /* Subtotal and derived rows */
     .ps-sub { font-size: 0.85rem; color: var(--text-secondary); }
     .ps-sub-val {
       text-align: right;
@@ -72,23 +73,18 @@
       padding-right: 9px;
     }
     .ps-sub-val.muted { color: var(--text-muted); }
+    .ps-derived { font-size: 0.82rem; color: var(--text-muted); padding-left: 18px; }
+    .ps-derived-val {
+      text-align: right; font-size: 0.85rem; font-variant-numeric: tabular-nums;
+      color: var(--text-muted); padding-right: 9px;
+    }
+    /* The rule above the figure that actually feeds the equation */
+    .ps-total {
+      grid-column: 1 / -1; margin-top: 4px; padding-top: 10px;
+      border-top: 2px solid var(--baseline);
+    }
 
     .coa-field { max-width: 260px; }
-
-    /* The equation, stated once at the top of the results */
-    .eq {
-      text-align: center;
-      font-size: 1.05rem;
-      line-height: 1.9;
-      margin: 0 0 16px;
-      color: var(--text-primary);
-    }
-    .eq .aid { color: var(--good); font-weight: 600; }
-    .eq .efc { color: var(--crit); font-weight: 700; font-size: 1.15rem; }
-    .eq .term { white-space: nowrap; }
-    .eq .sym { min-width: 0; margin: 0; }
-
-    .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
 
     /* Segmented radio — reads as one control rather than two loose dots */
     .seg { display: inline-flex; gap: 0; border: 1px solid var(--baseline); border-radius: 9px; overflow: hidden; }
@@ -104,6 +100,21 @@
     .seg label + label span { border-left: 1px solid var(--baseline); }
     .seg input:checked + span { background: var(--accent); color: #fff; font-weight: 600; }
     .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+    /* The equation, stated once at the top of the results */
+    .eq {
+      text-align: center;
+      font-size: 1.05rem;
+      line-height: 1.9;
+      margin: 0 0 16px;
+      color: var(--text-primary);
+    }
+    .eq .aid { color: var(--good); font-weight: 600; }
+    .eq .efc { color: var(--crit); font-weight: 700; font-size: 1.15rem; }
+    .eq .term { white-space: nowrap; }
+    .eq .sym { min-width: 0; margin: 0; }
+
+    .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
@@ -147,7 +158,7 @@
         <input type="number" id="p-agi" value="150000" min="0" step="1000">
         <input type="number" id="s-agi" value="5000" min="0" step="500">
 
-        <div class="ps-group">College assets <span class="hint">— the pool the formula counts</span></div>
+        <div class="ps-group">College assets <span class="hint">— counted at every school</span></div>
 
         <label class="ps-label" for="p-bank">Bank savings</label>
         <input type="number" id="p-bank" value="50000" min="0" step="1000">
@@ -165,11 +176,45 @@
         <input type="number" id="p-c529" value="60000" min="0" step="1000">
         <input type="number" id="s-c529" value="0" min="0" step="500">
 
-        <div class="ps-sub"><span class="sym">A&nbsp;/&nbsp;a</span>Net college asset</div>
-        <div class="ps-sub-val" id="p-college-sub">—</div>
-        <div class="ps-sub-val" id="s-college-sub">—</div>
+        <div class="ps-sub">Subtotal</div>
+        <div class="ps-sub-val" id="p-base-sub">—</div>
+        <div class="ps-sub-val" id="s-base-sub">—</div>
 
-        <div class="ps-group">Non-college assets <span class="hint">— the pool it does not</span></div>
+        <div class="ps-group">Home, business and farm <span class="hint" id="cond-hint"></span></div>
+
+        <label class="ps-label" for="p-home">Equity in primary residence</label>
+        <input type="number" id="p-home" value="300000" min="0" step="1000">
+        <input type="number" id="s-home" value="0" min="0" step="500">
+
+        <div class="ps-derived" id="home-cap-label">counted after the cap</div>
+        <div class="ps-derived-val" id="p-home-counted">—</div>
+        <div class="ps-derived-val" id="s-home-counted">—</div>
+
+        <label class="ps-label" for="p-biz">Business assets — market value</label>
+        <input type="number" id="p-biz" value="0" min="0" step="1000">
+        <input type="number" id="s-biz" value="0" min="0" step="500">
+
+        <label class="ps-label sub-row" for="p-bizdebt">less business debt</label>
+        <input type="number" id="p-bizdebt" value="0" min="0" step="1000">
+        <input type="number" id="s-bizdebt" value="0" min="0" step="500">
+
+        <label class="ps-label" for="p-farm">Farm assets — market value</label>
+        <input type="number" id="p-farm" value="0" min="0" step="1000">
+        <input type="number" id="s-farm" value="0" min="0" step="500">
+
+        <label class="ps-label sub-row" for="p-farmdebt">less farm debt</label>
+        <input type="number" id="p-farmdebt" value="0" min="0" step="1000">
+        <input type="number" id="s-farmdebt" value="0" min="0" step="500">
+
+        <div class="ps-derived">business + farm net worth</div>
+        <div class="ps-derived-val" id="p-bizfarm-net">—</div>
+        <div class="ps-derived-val" id="s-bizfarm-net">—</div>
+
+        <div class="ps-sub" id="cond-sub-label">—</div>
+        <div class="ps-sub-val" id="p-cond-sub">—</div>
+        <div class="ps-sub-val" id="s-cond-sub">—</div>
+
+        <div class="ps-group">Never counted</div>
 
         <label class="ps-label" for="p-ins">Life insurance cash value</label>
         <input type="number" id="p-ins" value="80000" min="0" step="1000">
@@ -179,21 +224,14 @@
         <input type="number" id="p-ret" value="400000" min="0" step="1000">
         <input type="number" id="s-ret" value="0" min="0" step="500">
 
-        <label class="ps-label" for="p-home">Equity in primary residence</label>
-        <input type="number" id="p-home" value="300000" min="0" step="1000">
-        <input type="number" id="s-home" value="0" min="0" step="500">
-
-        <label class="ps-label" for="p-biz">Business assets</label>
-        <input type="number" id="p-biz" value="0" min="0" step="1000">
-        <input type="number" id="s-biz" value="0" min="0" step="500">
-
-        <label class="ps-label" for="p-farm">Farm assets</label>
-        <input type="number" id="p-farm" value="0" min="0" step="1000">
-        <input type="number" id="s-farm" value="0" min="0" step="500">
-
         <div class="ps-sub">Not assessed — costs you nothing</div>
         <div class="ps-sub-val muted" id="p-shelter-sub">—</div>
         <div class="ps-sub-val muted" id="s-shelter-sub">—</div>
+
+        <div class="ps-total"></div>
+        <div class="ps-sub"><span class="sym">A&nbsp;/&nbsp;a</span><b>Net college asset</b> — into the equation</div>
+        <div class="ps-sub-val" id="p-college-sub">—</div>
+        <div class="ps-sub-val" id="s-college-sub">—</div>
       </div>
     </section>
 
@@ -216,9 +254,14 @@
           <label for="r-sa">Student college asset &nbsp;<i>a</i> (%)</label>
           <input type="number" id="r-sa" value="20" min="0" max="100" step="0.5">
         </div>
+        <div class="field">
+          <label for="r-cap">Home equity cap (× parent AGI)</label>
+          <input type="number" id="r-cap" value="2" min="0" max="20" step="0.1">
+        </div>
       </div>
       <p class="note">A student's dollars are assessed far harder than a parent's — which is why
-        who holds an asset matters as much as how much of it there is.</p>
+        who holds an asset matters as much as how much of it there is. The cap applies only at a
+        private school.</p>
     </section>
 
     <section class="panel">
@@ -244,8 +287,8 @@
       <div class="explain">
         <h3>The lever — what moving a dollar is worth</h3>
         <p>Every dollar sitting in the college pool costs you its assessment rate, each year the
-          school looks. Move it to the non-college pool and that cost goes to zero. Because the
-          rates differ by owner, the same dollar is worth very different amounts:</p>
+          school looks. Move it to a pool that is never counted and that cost goes to zero. Because
+          the rates differ by owner, the same dollar is worth very different amounts:</p>
         <table class="lever" id="lever-table"></table>
         <p style="margin-top:12px">A <b>529</b> is the case where ownership does the work on its
           own: it is normally reported as the <i>account owner's</i> asset, so a parent-owned plan
@@ -256,14 +299,13 @@
           the planning has to happen <b>before</b> the year the formula looks at, not after.</p>
       </div>
 
-      <p class="note">One year at one school. Which assets fall on which side is not universal —
-        the federal FAFSA formula and the CSS Profile used by many private colleges draw the line
-        differently, notably on home equity — so set the categories and rates to match the formula
-        your schools actually use. Aid is floored at zero: when EFC exceeds the cost of attendance
-        there is no need-based award, and a larger EFC does not create a bill beyond the cost.</p>
+      <p class="note">One year at one school. Which assets fall on which side is not universal, so
+        set the categories, rates and cap to match the formula your schools actually use. Aid is
+        floored at zero: when EFC exceeds the cost of attendance there is no need-based award, and
+        a larger EFC does not create a bill beyond the cost.</p>
     </section>
   </div>
 
-  <script src="js/tuition.js?v=65dd8424"></script>
+  <script src="js/tuition.js?v=f398f177"></script>
 </body>
 </html>

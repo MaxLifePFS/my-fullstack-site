@@ -1,41 +1,49 @@
 /* College Tuition Reduction
  *
- *   EFC          = I×rI + A×rA + i×ri + a×ra
+ *   EFC           = I×rI + A×rA + i×ri + a×ra
  *   Financial aid = Cost of attendance − EFC        (floored at zero)
  *
- * where, per the model:
- *   I = parent AGI          A = parent net college asset
- *   i = student AGI         a = student net college asset
+ * where I/i are the parent's and student's AGI, and A/a are their net college
+ * assets. What lands in A and a depends on the school type chosen in Step 1:
  *
- * "Net college asset" is the sum of the counted pool — bank savings, securities,
- * investment-property equity and 529 balances. The non-college pool (life insurance cash value,
- * retirement, primary-residence equity, business and farm assets) carries a rate of zero by
- * definition: it never enters the equation, which is the whole lever.
+ *   Public   A = bank + securities + investment-property equity + 529
+ *
+ *   Private  A = the same, plus
+ *                  primary-residence equity, capped at capMult × parent AGI
+ *                  business net worth   (market value − debt, floored at zero)
+ *                  farm net worth       (market value − debt, floored at zero)
+ *
+ * Life insurance cash value and retirement savings are never counted under
+ * either type — that is the lever the page is built around.
  */
 
-const COLLEGE_ROWS = ["bank", "stock", "prop", "c529"];
-const SHELTER_ROWS = ["ins", "ret", "home", "biz", "farm"];
+const BASE_ROWS = ["bank", "stock", "prop", "c529"];
+const NEVER_ROWS = ["ins", "ret"];
+
+const CTYPE_NOTE = {
+  public: "Public schools generally run the federal FAFSA formula on its own: the home, the " +
+    "business and the farm stay out of the calculation entirely.",
+  private: "Many private schools add the CSS Profile, which reaches further — primary-residence " +
+    "equity counts (up to the cap set in Step 4), and business and farm assets count at net worth.",
+};
+
+/* Read a $ field, treating blank/invalid as zero */
+const money = (id) => numInput(id, 0, 0, 1e12);
 
 /* Sum a set of rows for one owner ("p" or "s") */
 function sumRows(who, rows) {
-  return rows.reduce((t, row) => t + numInput(`${who}-${row}`, 0, 0, 1e12), 0);
+  return rows.reduce((t, row) => t + money(`${who}-${row}`), 0);
 }
 
-/* Which formula the schools on the list actually run. Captured now; it does not
-   feed the equation yet. */
 function collegeType() {
   const picked = document.querySelector('input[name="ctype"]:checked');
   return picked ? picked.value : "public";
 }
 
-const CTYPE_NOTE = {
-  public: "Public schools generally run the federal FAFSA formula on its own.",
-  private: "Many private schools add the CSS Profile on top of FAFSA, and it draws the asset line differently — most notably by counting equity in the primary residence. If yours does, move that row up into the college pool.",
-};
-
 function readModel() {
-  const coa = numInput("coa", 0, 0, 1e9);
+  const coa = money("coa");
   const ctype = collegeType();
+  const isPrivate = ctype === "private";
 
   const rate = {
     pi: numInput("r-pi", 0, 0, 100) / 100,
@@ -43,12 +51,32 @@ function readModel() {
     si: numInput("r-si", 0, 0, 100) / 100,
     sa: numInput("r-sa", 0, 0, 100) / 100,
   };
+  const capMult = numInput("r-cap", 0, 0, 20);
 
-  const owner = (who) => ({
-    agi: numInput(`${who}-agi`, 0, 0, 1e12),
-    college: sumRows(who, COLLEGE_ROWS),
-    shelter: sumRows(who, SHELTER_ROWS),
-  });
+  /* the cap is set by the PARENT's income, and applies to both columns */
+  const homeCap = capMult * money("p-agi");
+
+  const owner = (who) => {
+    const base = sumRows(who, BASE_ROWS);
+    const home = money(`${who}-home`);
+    /* net worth cannot go below zero: a business in the red does not shelter
+       the assets sitting beside it */
+    const bizNet = Math.max(0, money(`${who}-biz`) - money(`${who}-bizdebt`));
+    const farmNet = Math.max(0, money(`${who}-farm`) - money(`${who}-farmdebt`));
+    const bizFarmNet = bizNet + farmNet;
+
+    const homeCounted = isPrivate ? Math.min(home, homeCap) : 0;
+    const conditional = isPrivate ? homeCounted + bizFarmNet : 0;
+    const never = sumRows(who, NEVER_ROWS);
+
+    return {
+      agi: money(`${who}-agi`),
+      base, home, homeCounted, bizNet, farmNet, bizFarmNet, conditional, never,
+      college: base + conditional,
+      /* everything the formula never sees, whichever school type */
+      sheltered: never + (isPrivate ? home - homeCounted : home + bizFarmNet),
+    };
+  };
 
   const parent = owner("p");
   const student = owner("s");
@@ -66,7 +94,7 @@ function readModel() {
   const aid = Math.max(0, coa - efc);
 
   return {
-    coa, ctype, rate, parent, student, term, efc, aid,
+    coa, ctype, isPrivate, rate, capMult, homeCap, parent, student, term, efc, aid,
     parentShare: term.I + term.A,
     studentShare: term.i + term.a,
     covered: coa > 0 ? (aid / coa) * 100 : 0,
@@ -88,8 +116,30 @@ function renderWorked(m) {
     `<tr><td><i>${sym}</i></td><td>${fmtCurrency(base)}</td><td>× ${pct(r)}</td>
          <td style="text-align:right">${fmtCurrency(out)}</td></tr>`;
 
+  /* under Private, say what got folded into A and a, and whether the cap bit */
+  let build = "";
+  if (m.isPrivate) {
+    const line = (who, o) => {
+      const bits = [];
+      if (o.homeCounted > 0) {
+        bits.push(o.home > m.homeCap
+          ? `home equity ${fmtCurrency(o.home)} <b>capped at ${fmtCurrency(m.homeCap)}</b>`
+          : `home equity ${fmtCurrency(o.home)}`);
+      }
+      if (o.bizFarmNet > 0) bits.push(`business and farm net worth ${fmtCurrency(o.bizFarmNet)}`);
+      if (!bits.length) return "";
+      return `<li>${who}: ${fmtCurrency(o.base)} of college assets plus ${bits.join(" and ")}
+        = <b>${fmtCurrency(o.college)}</b></li>`;
+    };
+    const items = line("Parent", m.parent) + line("Student", m.student);
+    if (items) {
+      build = `<p>At a private school the home, business and farm join the counted pool:</p>
+        <ul>${items}</ul>`;
+    }
+  }
+
   const noAid = m.aid === 0;
-  return `
+  return `${build}
     <table class="lever" style="margin-bottom:12px">
       <tbody>
         ${row("I", m.parent.agi, m.rate.pi, m.term.I)}
@@ -124,27 +174,43 @@ function renderLever(m) {
       ${rows.map(([name, sym, r]) =>
         `<tr><td>${name}</td><td><i>${sym}</i> × ${pct(r)}</td>
              <td style="text-align:right">${per1k(r)}</td></tr>`).join("")}
-      <tr><td>Anything in the non-college pool</td><td>not in the equation</td>
+      <tr><td>Life insurance cash value or retirement savings</td><td>never in the equation</td>
           <td style="text-align:right"><b>${fmtCurrency(0)}</b></td></tr>
     </tbody>`;
 }
 
+const setText = (id, s) => { document.getElementById(id).textContent = s; };
+
 function render() {
   const m = readModel();
 
-  document.getElementById("ctype-note").textContent = CTYPE_NOTE[m.ctype];
+  setText("ctype-note", CTYPE_NOTE[m.ctype]);
 
-  /* live subtotals beside the inputs — these are A and a */
-  document.getElementById("p-college-sub").textContent = fmtCurrency(m.parent.college);
-  document.getElementById("s-college-sub").textContent = fmtCurrency(m.student.college);
-  document.getElementById("p-shelter-sub").textContent = fmtCurrency(m.parent.shelter);
-  document.getElementById("s-shelter-sub").textContent = fmtCurrency(m.student.shelter);
+  /* the group heading and the conditional subtotal both depend on school type */
+  setText("cond-hint", m.isPrivate
+    ? "— counted at a private school"
+    : "— not counted at a public school");
+  setText("cond-sub-label", m.isPrivate
+    ? "Added to the college pool"
+    : "Not counted at a public school");
+  setText("home-cap-label", m.isPrivate
+    ? `counted after the ${m.capMult}× cap (${fmtCurrency(m.homeCap)})`
+    : "not counted");
+
+  for (const [who, o] of [["p", m.parent], ["s", m.student]]) {
+    setText(`${who}-base-sub`, fmtCurrency(o.base));
+    setText(`${who}-home-counted`, fmtCurrency(o.homeCounted));
+    setText(`${who}-bizfarm-net`, fmtCurrency(o.bizFarmNet));
+    setText(`${who}-cond-sub`, fmtCurrency(o.conditional));
+    setText(`${who}-shelter-sub`, fmtCurrency(o.sheltered));
+    setText(`${who}-college-sub`, fmtCurrency(o.college));
+  }
 
   /* keep the stated equation in step with the rates actually entered */
-  document.getElementById("eq-rpi").textContent = pct(m.rate.pi);
-  document.getElementById("eq-rpa").textContent = pct(m.rate.pa);
-  document.getElementById("eq-rsi").textContent = pct(m.rate.si);
-  document.getElementById("eq-rsa").textContent = pct(m.rate.sa);
+  setText("eq-rpi", pct(m.rate.pi));
+  setText("eq-rpa", pct(m.rate.pa));
+  setText("eq-rsi", pct(m.rate.si));
+  setText("eq-rsa", pct(m.rate.sa));
 
   document.getElementById("result-tiles").innerHTML = [
     tile("Your share (EFC)", fmtCurrency(m.efc), "what you are expected to pay", "hero"),
