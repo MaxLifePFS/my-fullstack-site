@@ -31,7 +31,7 @@ const GROUPS = [
       { name: 'Trinity Ranch Room Calendar', url: 'https://trinity.maxlife.cc/calendar' },
       { name: 'FlexStay Room Calendar', url: 'https://maxlife.cc/flexstay', host: 'flexstay.maxlife.cc' },
       { name: 'Realty Invest', url: 'https://learn.yongmingu.com/' },
-      { name: 'Trinity C1 — Capital One', url: 'https://verified.capitalone.com/auth/signin' },
+      { name: 'Chase Bank Trinity', url: 'https://secure.chase.com/web/auth/dashboard#/dashboard/overview' },
       { name: 'Nanxiang 南翔', url: 'https://sites.google.com/view/bao-all' },
       { name: 'TSI — RealAuction', url: 'https://www.realauction.com/clients' },
       { name: 'Zillow Rental Manager', url: 'https://www.zillow.com/rental-manager/properties' },
