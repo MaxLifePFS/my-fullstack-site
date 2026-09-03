@@ -76,7 +76,7 @@ const GROUPS = [
     zh: '包氏慈善基金会',
     icon: '💛',
     links: [
-      { name: 'MaxLife Foundation 万福基金会', url: 'https://sites.google.com/view/mannafund' }
+      { name: 'MaxLife Foundation 万福基金会', url: 'https://charity.maxlife.cc' }
     ]
   },
   {
