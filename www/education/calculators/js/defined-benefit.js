@@ -138,6 +138,31 @@ function levelContribution(cfg) {
   return solveScale(cfg, unitPattern(cfg));
 }
 
+/* Rewrite the contribution column so the benefit is funded again, holding
+   whatever shape is currently typed. A uniform result is written to year 1
+   only, so fill-down carries it and the cells do not all light up as pinned. */
+function resolveContributions(cfg) {
+  const base = pattern(cfg);
+  const k = solveScale(cfg, base);
+  if (k === null || !isFinite(k) || k < 0) return false;
+
+  const scaled = base.slice(0, cfg.contribYears).map((v) => Math.round(v * k * 100) / 100);
+  if (!scaled.length) return false;
+
+  contribChanges.clear();
+  const uniform = scaled.every((v) => Math.abs(v - scaled[0]) < 0.005);
+  if (uniform) contribChanges.set(1, scaled[0]);
+  else scaled.forEach((v, i) => contribChanges.set(i + 1, v));
+  return true;
+}
+
+/* Re-solve, then draw. Used by everything EXCEPT a contribution edit: typing a
+   contribution must not be rescaled out from under the person typing it. */
+function renderResolved() {
+  if (byId("auto-solve").checked) resolveContributions(readConfig());
+  render();
+}
+
 function tile(label, value, sub, cls) {
   return `<div class="tile ${cls || ""}">
       <div class="label">${label}</div>
@@ -422,7 +447,7 @@ function render() {
 document.addEventListener("DOMContentLoaded", () => {
   for (const id of ["age", "contrib-years", "start-year", "payout-years",
                     "income", "cola", "tax", "rate"]) {
-    byId(id).addEventListener("input", render);
+    byId(id).addEventListener("input", renderResolved);
   }
 
   /* Per-year edits. Delegated, so the handler survives the row rebuilds that
@@ -434,9 +459,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const year = Number(input.dataset.year);
     const map = input.dataset.col === "rate" ? rateChanges : contribChanges;
     const v = parseFloat(input.value);
+    const isRate = input.dataset.col === "rate";
     if (input.value.trim() === "" || !isFinite(v)) map.delete(year);
-    else map.set(year, input.dataset.col === "rate" ? v : Math.max(0, v));
-    render();
+    else map.set(year, isRate ? v : Math.max(0, v));
+    /* a new return changes what the benefit costs, so the contributions follow;
+       a new contribution is the person's own figure and is left alone */
+    if (isRate) renderResolved(); else render();
   });
   /* leaving a cleared cell puts the inherited value back in view */
   tbody.addEventListener("focusout", (ev) => {
@@ -467,10 +495,13 @@ document.addEventListener("DOMContentLoaded", () => {
   byId("reset-btn").addEventListener("click", () => {
     contribChanges.clear();
     rateChanges.clear();
-    render();
+    renderResolved();
   });
 
-  render();
+  /* switching the toggle on should fund it immediately, not wait for an edit */
+  byId("auto-solve").addEventListener("change", renderResolved);
+
+  renderResolved();
 });
 document.addEventListener("themechange", () => {
   if (lastCfg && lastRun) renderChart(lastCfg, lastRun);

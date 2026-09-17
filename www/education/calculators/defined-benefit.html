@@ -29,6 +29,12 @@
     }
     input.cell-input:disabled { color: var(--text-muted); }
     .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .auto-toggle {
+      display: inline-flex; align-items: center; gap: 7px;
+      font-size: 0.85rem; color: var(--text-secondary); cursor: pointer;
+      padding-right: 4px;
+    }
+    .auto-toggle input { accent-color: var(--accent); }
     /* the funding verdict */
     .verdict-line {
       margin: 0 0 16px; padding: 10px 14px;
@@ -137,6 +143,10 @@
       <div class="chart-head">
         <h2 style="margin:0">Year-by-year schedule</h2>
         <div class="btn-row">
+          <label class="auto-toggle">
+            <input type="checkbox" id="auto-solve" checked>
+            <span>Keep it funded automatically</span>
+          </label>
           <button type="button" class="btn-sm" id="level-btn">Level the contributions</button>
           <button type="button" class="btn-sm" id="scale-btn">Scale my schedule to fund it</button>
           <button type="button" class="btn-sm" id="reset-btn">Reset</button>
@@ -144,9 +154,12 @@
       </div>
       <p class="note" style="margin-top:0">Both <b>Contribution</b> and <b>Return&nbsp;%</b> take
         an entry on any year and fill every year below it, until a later year sets a new one.
-        Outlined cells are the ones you pinned. <b>Level</b> replaces the column with the equal
-        annual amount that funds the benefit exactly; <b>Scale</b> keeps the shape you typed and
-        multiplies it up or down until the last payment empties the plan.</p>
+        Outlined cells are the ones you pinned. While <b>Keep it funded automatically</b> is on,
+        changing a return — or any assumption above — re-solves the contributions on the spot,
+        holding whatever shape you typed. Editing a contribution never triggers that, so the
+        column stays yours. Switch it off to enter real contributions and read the surplus or
+        shortfall instead. <b>Level</b> replaces the column with the equal annual amount that
+        funds the benefit; <b>Scale</b> keeps your shape and multiplies it.</p>
       <div class="table-scroll">
         <table class="data" id="schedule">
           <thead>
@@ -172,6 +185,6 @@
     </section>
   </div>
 
-  <script src="js/defined-benefit.js?v=f0460ba2"></script>
+  <script src="js/defined-benefit.js?v=0bca5cd3"></script>
 </body>
 </html>
