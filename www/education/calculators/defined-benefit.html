@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defined Benefit Funding — Finance Calculators</title>
+  <link rel="stylesheet" href="css/style.css?v=76ea79c8">
+  <script src="js/common.js?v=efccdc49"></script>
+  <style>
+    /* The answer, stated as an equation the way the tuition page does */
+    .eq {
+      text-align: center;
+      font-size: clamp(1.05rem, 2.3vw, 1.5rem);
+      font-weight: 700;
+      line-height: 1.9;
+      margin: 6px 0 24px;
+      color: var(--text-primary);
+    }
+    .eq .step { color: var(--accent); }
+    .eq .ans { color: var(--crit); font-size: 1.08em; }
+    .eq .term { white-space: nowrap; }
+    .derived { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
+    .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    .lever td { padding: 3px 0; }
+    .table-scroll { max-height: 460px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <h1><a href="index.html">Defined Benefit Funding</a></h1>
+      <div class="header-right">
+        <span class="crumb"><a href="index.html">Home</a> / Defined Benefit</span>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark">Theme</button>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Step 1 — when the income starts</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="age">Your age today</label>
+          <input type="number" id="age" value="57" min="18" max="100" step="1">
+        </div>
+        <div class="field">
+          <label for="start-year">Income starts at beginning of year</label>
+          <input type="number" id="start-year" value="16" min="1" max="60" step="1">
+          <div class="derived" id="start-derived"></div>
+        </div>
+      </div>
+      <p class="note">The deposit goes in at the beginning of year 1, so it compounds for one
+        year fewer than the start year — year 16 means 15 years of growth.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Step 2 — the benefit you want</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="income">Annual income before tax ($)</label>
+          <input type="number" id="income" value="250000" min="0" step="10000">
+        </div>
+        <div class="field">
+          <label for="payout-years">Years of payments</label>
+          <input type="number" id="payout-years" value="20" min="1" max="60" step="1">
+          <div class="derived" id="payout-derived"></div>
+        </div>
+        <div class="field">
+          <label for="cola">Annual increase in the payment (%)</label>
+          <input type="number" id="cola" value="0" min="0" max="20" step="0.5">
+        </div>
+      </div>
+      <p class="note">Payments land at the beginning of each year, the first one on the day the
+        income starts. How long they run is the single biggest lever on the deposit — a lifetime
+        benefit has to be funded to a life expectancy, not to a round number.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Step 3 — assumptions</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label for="rate">Average annual return (%)</label>
+          <input type="number" id="rate" value="8" min="-20" max="30" step="0.1">
+        </div>
+        <div class="field">
+          <label for="tax">Your tax rate today (%)</label>
+          <input type="number" id="tax" value="20" min="0" max="60" step="0.5">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Step 4 — what you deposit today</h2>
+
+      <p class="eq" id="eq"></p>
+
+      <div class="tiles" id="result-tiles"></div>
+
+      <div class="explain">
+        <h3>Worked out with your numbers</h3>
+        <div id="worked"></div>
+      </div>
+
+      <div class="explain">
+        <h3>What the payout period does to the answer</h3>
+        <p>Everything above turns on how long the income has to last. The same $<span
+          id="sens-income">250,000</span> a year costs very different amounts to fund:</p>
+        <table class="lever" id="sens-table"></table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="chart-head">
+        <h2 style="margin:0">Balance over time</h2>
+      </div>
+      <div class="chart-box" id="chart-box">
+        <svg id="chart" viewBox="0 0 760 380" role="img"
+             aria-label="Line chart of the plan balance by year: it compounds up until the income starts, then falls as each payment is drawn"></svg>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="chart-head">
+        <h2 style="margin:0">Year-by-year schedule</h2>
+      </div>
+      <div class="table-scroll">
+        <table class="data" id="schedule">
+          <thead>
+            <tr><th>Year</th><th>Age</th><th>Deposit</th><th>Income drawn</th>
+                <th>Interest</th><th>End balance</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="note" id="residual-note"></p>
+      <p class="note"><b>Before acting on this:</b> a qualified defined benefit plan is not funded
+        by a single deposit of your choosing. An enrolled actuary sets the contribution each year
+        from the plan's benefit formula, your compensation history and the plan's own assumed rate
+        — the figure above is what the promise is worth today at the rate you entered, which is the
+        starting point for that work, not a substitute for it. Two statutory limits also bind: the
+        annual benefit is capped by IRC 415(b) (indexed each year, recently around the $280,000
+        mark) and by your high-three-year average compensation. Deductibility has its own limits
+        and the deduction is a deferral, not forgiveness — every dollar of income drawn later is
+        taxed as ordinary income then.</p>
+    </section>
+  </div>
+
+  <script src="js/defined-benefit.js?v=d0be65bf"></script>
+</body>
+</html>
