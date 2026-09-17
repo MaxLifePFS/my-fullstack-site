@@ -1,22 +1,25 @@
 /* Defined Benefit Funding
  *
- * Works backwards from a promised income to the single deposit that funds it.
+ * Funds a fixed retirement income out of a contribution schedule that can
+ * differ year by year, at returns that can also differ year by year.
  *
- *   1. What the promise is worth on the day it starts. Payments are at the
- *      beginning of each year, so this is an annuity-DUE. With q = (1+g)/(1+r),
- *      where g is the annual increase in the payment:
+ * The ledger is beginning-of-year flows, return credited at year end:
  *
- *        PV(at start) = PMT x (1 - q^L) / (1 - q)        q != 1
- *                     = PMT x L                          q == 1  (g == r)
+ *   balance = (balance + contribution - payment) x (1 + rate_that_year)
  *
- *   2. Discount that back over the deferral. The deposit lands at the beginning
- *      of year 1 and the income starts at the beginning of year `startYear`, so
- *      it compounds for startYear - 1 years:
+ * Solving for the contributions is the only subtle part. That recursion is
+ * AFFINE in the contributions — scaling every contribution by k scales their
+ * whole compounded effect by k, and the payments are untouched. So the final
+ * balance as a function of a contribution pattern P scaled by k is a straight
+ * line, and two runs pin it down exactly:
  *
- *        Deposit = PV(at start) / (1+r)^(startYear - 1)
+ *   B0 = final balance with no contributions at all
+ *   B1 = final balance with pattern P
+ *   final(k) = B0 + k (B1 - B0)  =>  k = B0 / (B0 - B1)   for final(k) = 0
  *
- * The tax figure is the deduction's value in the contribution year at today's
- * rate. It is a deferral: the income drawn later is ordinary income then.
+ * Feed that a flat pattern of 1 and k is the level annual contribution. Feed it
+ * the shape typed into the table and k is the multiple that shape needs. No
+ * iteration, no root-finding, exact to floating point either way.
  */
 
 const W = 760, H = 380, PAD = { left: 68, right: 16, top: 16, bottom: 34 };
@@ -28,65 +31,112 @@ function el(name, attrs) {
   return node;
 }
 const cssVar = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const byId = (id) => document.getElementById(id);
 
-function readModel() {
+const pct = (v, dp) => `${v.toFixed(dp === undefined ? (v % 1 === 0 ? 0 : 1) : dp)}%`;
+/* `|| 0` folds -0 into 0: a solved balance lands a hair either side of zero and
+   would otherwise format as "-$0" */
+const money0 = (v) => fmtCurrency(Math.round(v) || 0);
+
+const DEFAULT_CONTRIB = 50000;
+
+/* Year -> value, for the two editable columns. A value set on a year applies to
+   that year and every year below it, until a later year sets a new one. Kept
+   when the horizon shrinks, so lengthening it again restores what was typed. */
+const contribChanges = new Map();
+const rateChanges = new Map();
+
+/* Expand a change map into a per-year series */
+function series(map, count, fallback) {
+  const out = [];
+  let cur = fallback;
+  for (let y = 1; y <= count; y++) {
+    if (map.has(y)) cur = map.get(y);
+    out.push(cur);
+  }
+  return out;
+}
+
+function readConfig() {
   const age = numInput("age", 57, 18, 100);
-  const startYear = numInput("start-year", 16, 1, 60);
-  const defer = startYear - 1;                       // years of pure compounding
+  const startYear = Math.round(numInput("start-year", 16, 1, 60));
+  const L = Math.round(numInput("payout-years", 20, 1, 60));
+  /* contributing past the day the income starts is not a thing this models */
+  const contribYears = Math.min(
+    Math.round(numInput("contrib-years", 15, 1, 60)), startYear - 1 || 1);
   const pmt = numInput("income", 0, 0, 1e9);
-  const L = Math.round(numInput("payout-years", 1, 1, 60));
   const g = numInput("cola", 0, 0, 20) / 100;
-  const r = numInput("rate", 0, -20, 30) / 100;
   const tax = numInput("tax", 0, 0, 60) / 100;
+  const defaultRate = numInput("rate", 8, -20, 30);
 
-  /* 1. value of the promise on the day the first payment lands */
-  const q = (1 + g) / (1 + r);
-  const pvAtStart = Math.abs(q - 1) < 1e-12
-    ? pmt * L
-    : pmt * (1 - Math.pow(q, L)) / (1 - q);
+  const horizon = Math.max(startYear + L - 1, contribYears);
+  return {
+    age, startYear, L, contribYears, pmt, g, tax, defaultRate, horizon,
+    rates: series(rateChanges, horizon, defaultRate),
+    startAge: age + startYear - 1,
+    endAge: age + startYear + L - 2,
+  };
+}
 
-  /* 2. discount back to today */
-  const growth = Math.pow(1 + r, defer);
-  const deposit = pvAtStart / growth;
+/* The contribution pattern currently typed into the table */
+function pattern(cfg) {
+  const raw = series(contribChanges, cfg.horizon, DEFAULT_CONTRIB);
+  return raw.map((v, i) => (i < cfg.contribYears ? v : 0));
+}
 
-  /* what it would take never to touch the principal, for comparison */
-  const perpetuity = r > g ? pmt * (1 + r) / (r - g) : Infinity;
+/* A flat $1 in every contribution year — the probe for the level solve */
+function unitPattern(cfg) {
+  return Array.from({ length: cfg.horizon }, (_, i) => (i < cfg.contribYears ? 1 : 0));
+}
 
-  /* the full ledger, so the answer can be checked rather than trusted */
+function runLedger(cfg, contribs) {
   const rows = [];
-  let bal = deposit;
-  let totalIncome = 0, totalInterest = 0;
-  for (let y = 1; y <= defer + L; y++) {
-    const draw = (y >= startYear && y < startYear + L)
-      ? pmt * Math.pow(1 + g, y - startYear) : 0;
-    bal -= draw;
-    const interest = bal * r;
-    bal += interest;
+  let bal = 0, totalContributed = 0, totalIncome = 0, totalReturn = 0;
+  let balanceAtStart = 0, depletedYear = null;
+
+  for (let y = 1; y <= cfg.horizon; y++) {
+    const c = contribs[y - 1] || 0;
+    const drawing = y >= cfg.startYear && y < cfg.startYear + cfg.L;
+    const draw = drawing ? cfg.pmt * Math.pow(1 + cfg.g, y - cfg.startYear) : 0;
+
+    /* the balance the income starts from, before the first payment comes out */
+    if (y === cfg.startYear) balanceAtStart = bal + c;
+
+    bal += c - draw;
+    if (bal < -0.005 && depletedYear === null) depletedYear = y;
+    const rate = cfg.rates[y - 1] / 100;
+    const ret = bal * rate;
+    bal += ret;
+
+    totalContributed += c;
     totalIncome += draw;
-    totalInterest += interest;
+    totalReturn += ret;
     rows.push({
-      year: y, age: age + y - 1,
-      deposit: y === 1 ? deposit : 0,
-      draw, interest, balance: bal,
+      year: y, age: cfg.age + y - 1,
+      contribution: c, rate: cfg.rates[y - 1], draw, ret, balance: bal,
     });
   }
-
   return {
-    age, startYear, defer, pmt, L, g, r, tax,
-    pvAtStart, growth, deposit, perpetuity, rows,
-    totalIncome, totalInterest,
-    taxSaved: deposit * tax,
-    netCost: deposit * (1 - tax),
-    startAge: age + defer,
-    endAge: age + defer + L - 1,
+    rows, totalContributed, totalIncome, totalReturn, balanceAtStart, depletedYear,
     residual: rows.length ? rows[rows.length - 1].balance : 0,
   };
 }
 
-const pct = (v) => `${(v * 100).toFixed(v * 100 % 1 === 0 ? 0 : 1)}%`;
-/* `|| 0` folds -0 into 0: the final balance lands a hair below zero and
-   would otherwise format as "-$0" */
-const money0 = (v) => fmtCurrency(Math.round(v) || 0);
+/* The multiple `base` has to be scaled by so the last payment empties the plan.
+   Exact, because the final balance is affine in the contributions. */
+function solveScale(cfg, base) {
+  const zero = new Array(cfg.horizon).fill(0);
+  const B0 = runLedger(cfg, zero).residual;
+  const B1 = runLedger(cfg, base).residual;
+  const slope = B1 - B0;
+  if (!isFinite(slope) || Math.abs(slope) < 1e-9) return null;
+  return B0 / (B0 - B1);
+}
+
+/* Level annual contribution that funds the benefit exactly */
+function levelContribution(cfg) {
+  return solveScale(cfg, unitPattern(cfg));
+}
 
 function tile(label, value, sub, cls) {
   return `<div class="tile ${cls || ""}">
@@ -96,77 +146,104 @@ function tile(label, value, sub, cls) {
     </div>`;
 }
 
-/* Deposit needed for an arbitrary payout length, holding everything else */
-function depositFor(m, L) {
-  const q = (1 + m.g) / (1 + m.r);
-  const pv = Math.abs(q - 1) < 1e-12 ? m.pmt * L : m.pmt * (1 - Math.pow(q, L)) / (1 - q);
-  return pv / m.growth;
+function renderVerdict(cfg, run, level) {
+  const node = byId("verdict");
+  const funded = Math.abs(run.residual) < 1;
+
+  if (run.depletedYear !== null) {
+    const row = run.rows[run.depletedYear - 1];
+    node.className = "verdict-line bad";
+    node.innerHTML = `Your schedule <b class="bad">runs out in year ${run.depletedYear}</b>
+      (age ${row.age}) — before the ${cfg.L} payments are done. It funds
+      ${run.rows.filter((d) => d.draw > 0 && d.balance > -0.005).length} of them.
+      ${level !== null ? `A level ${money0(level)} a year would cover all ${cfg.L}.` : ""}`;
+    return;
+  }
+  if (funded) {
+    node.className = "verdict-line ok";
+    /* don't print the sub-dollar residual here — rounding would show "$1"
+       right after the word "exactly" */
+    node.innerHTML = `Your schedule <b class="ok">funds the benefit exactly</b> —
+      the last of the ${cfg.L} payments empties the plan.`;
+    return;
+  }
+  node.className = run.residual > 0 ? "verdict-line ok" : "verdict-line bad";
+  node.innerHTML = run.residual > 0
+    ? `Your schedule funds all ${cfg.L} payments and <b class="ok">leaves
+       ${money0(run.residual)}</b> at the end — more than the benefit needs.`
+    : `Your schedule <b class="bad">falls ${money0(-run.residual)} short</b> by the end.`;
 }
 
-function renderSensitivity(m) {
-  const lengths = [...new Set([10, 15, 20, 25, 30, m.L])].sort((a, b) => a - b);
+function renderWorked(cfg, run, level) {
+  const rateSet = [...new Set(cfg.rates.slice(0, cfg.horizon))];
+  const rateText = rateSet.length === 1
+    ? `a flat ${pct(rateSet[0])}`
+    : `returns that vary by year (${pct(Math.min(...rateSet))} to ${pct(Math.max(...rateSet))})`;
+
+  const levelRun = level === null ? null
+    : runLedger(cfg, unitPattern(cfg).map((v) => v * level));
+
+  return `
+    <p><b>The promise.</b> ${money0(cfg.pmt)} a year${cfg.g > 0
+      ? `, rising ${pct(cfg.g * 100)} a year,` : ""} for ${cfg.L} years, the first payment at the
+      beginning of year ${cfg.startYear} when you are ${cfg.startAge} and the last at
+      ${cfg.endAge} — ${money0(run.totalIncome)} of income in total.</p>
+
+    <p><b>What funds it.</b> With contributions in years 1–${cfg.contribYears} and ${rateText},
+      the level amount that funds the benefit exactly is <b>${level === null
+        ? "—" : money0(level)}</b> a year${level === null ? "" : `, or
+      ${money0(level * cfg.contribYears)} contributed in total`}.</p>
+
+    ${levelRun ? `<table class="lever" style="margin-top:12px">
+      <tbody>
+        <tr><td>${cfg.contribYears} contributions of ${money0(level)}</td>
+            <td>${money0(levelRun.totalContributed)}</td></tr>
+        <tr><td>Return earned over ${cfg.horizon} years</td>
+            <td>${money0(levelRun.totalReturn)}</td></tr>
+        <tr><td>Balance at the beginning of year ${cfg.startYear} (age ${cfg.startAge})</td>
+            <td><b>${money0(levelRun.balanceAtStart)}</b></td></tr>
+        <tr><td>${cfg.L} payments drawn out</td>
+            <td>${money0(levelRun.totalIncome)}</td></tr>
+        <tr><td>Left after the last payment</td>
+            <td>${money0(levelRun.residual)}</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px">${money0(levelRun.totalContributed)} in, ${money0(
+      levelRun.totalIncome)} out — ${(levelRun.totalIncome /
+      (levelRun.totalContributed || 1)).toFixed(1)}× the money contributed, because
+      ${money0(levelRun.totalReturn)} of it is return the plan earned along the way.</p>` : ""}
+
+    <p><b>The deduction.</b> At ${pct(cfg.tax * 100)} today, the schedule you have entered
+      (${money0(run.totalContributed)} over ${cfg.contribYears} years) is worth
+      <b>${money0(run.totalContributed * cfg.tax)}</b> in tax, leaving
+      ${money0(run.totalContributed * (1 - cfg.tax))} actually out of pocket. In the first year
+      alone the deduction is worth ${money0((run.rows[0]?.contribution || 0) * cfg.tax)}.</p>`;
+}
+
+function renderSensitivity(cfg) {
+  const lengths = [...new Set([10, 15, 20, 25, 30, cfg.L])].sort((a, b) => a - b);
   const body = lengths.map((L) => {
-    const d = depositFor(m, L);
-    const hl = L === m.L ? ' style="font-weight:700"' : "";
-    return `<tr${hl}><td>${L} years${L === m.L ? " &larr; yours" : ""}</td>
-        <td>through age ${m.startAge + L - 1}</td>
-        <td>${money0(d)}</td></tr>`;
+    const lvl = levelContribution({ ...cfg, L, horizon: Math.max(cfg.startYear + L - 1, cfg.contribYears),
+      rates: series(rateChanges, Math.max(cfg.startYear + L - 1, cfg.contribYears), cfg.defaultRate) });
+    const bold = L === cfg.L ? ' style="font-weight:700"' : "";
+    return `<tr${bold}><td>${L} years${L === cfg.L ? " &larr; yours" : ""}</td>
+        <td>through age ${cfg.startAge + L - 1}</td>
+        <td>${lvl === null ? "—" : money0(lvl)}</td></tr>`;
   }).join("");
-  const perp = isFinite(m.perpetuity)
-    ? `<tr><td>never depleted</td><td>principal untouched</td>
-         <td>${money0(m.perpetuity / m.growth)}</td></tr>`
-    : "";
   return `<tbody>
       <tr><td><b>Payments run for…</b></td><td></td>
-          <td style="text-align:right"><b>deposit today</b></td></tr>
-      ${body}${perp}
+          <td style="text-align:right"><b>level contribution</b></td></tr>
+      ${body}
     </tbody>`;
 }
 
-function renderWorked(m) {
-  const q = (1 + m.g) / (1 + m.r);
-  const factor = Math.abs(q - 1) < 1e-12 ? m.L : (1 - Math.pow(q, m.L)) / (1 - q);
-
-  return `
-    <p><b>Step 1 — what the promise is worth the day it starts.</b>
-      ${money0(m.pmt)} a year${m.g > 0 ? `, rising ${pct(m.g)} a year,` : ""} for ${m.L} years,
-      paid at the beginning of each year and discounted at ${pct(m.r)}, is worth
-      <b>${money0(m.pvAtStart)}</b> at the beginning of year ${m.startYear}
-      (${money0(m.pmt)} × ${factor.toFixed(4)}).</p>
-
-    <p><b>Step 2 — discount it back ${m.defer} years.</b> ${money0(m.pvAtStart)} ÷
-      ${pct(m.r)} compounding over ${m.defer} years — that is ÷ ${m.growth.toFixed(4)} —
-      gives a deposit today of <b>${money0(m.deposit)}</b>.</p>
-
-    <p><b>Step 3 — the deduction.</b> At ${pct(m.tax)} today, a ${money0(m.deposit)} deductible
-      contribution cuts this year's tax by <b>${money0(m.taxSaved)}</b>, so the money actually
-      out of your pocket is ${money0(m.netCost)}.</p>
-
-    <table class="lever" style="margin-top:12px">
-      <tbody>
-        <tr><td>Deposit at the beginning of year 1</td><td>${money0(m.deposit)}</td></tr>
-        <tr><td>Grows for ${m.defer} years at ${pct(m.r)}</td>
-            <td>× ${m.growth.toFixed(4)}</td></tr>
-        <tr><td>Balance at the beginning of year ${m.startYear} (age ${m.startAge})</td>
-            <td><b>${money0(m.pvAtStart)}</b></td></tr>
-        <tr><td>${m.L} payments of ${money0(m.pmt)}${m.g > 0 ? " and rising" : ""}</td>
-            <td>${money0(m.totalIncome)}</td></tr>
-        <tr><td>Left over after the last payment</td><td>${money0(m.residual)}</td></tr>
-      </tbody>
-    </table>
-
-    <p style="margin-top:12px">The ${money0(m.deposit)} deposit returns ${money0(m.totalIncome)}
-      of income — ${(m.totalIncome / m.deposit).toFixed(1)}× the money in — because
-      ${money0(m.totalInterest)} of it is interest the plan earned along the way.</p>`;
-}
-
-function renderChart(m) {
-  const svg = document.getElementById("chart");
+function renderChart(cfg, run) {
+  const svg = byId("chart");
   svg.innerHTML = "";
-  if (!m.rows.length) return;
+  if (!run.rows.length) return;
 
-  const years = m.rows.length;
-  const maxVal = Math.max(...m.rows.map((d) => d.balance), m.deposit, 1);
+  const years = run.rows.length;
+  const maxVal = Math.max(...run.rows.map((d) => d.balance), 1);
   const ticks = niceTicks(maxVal, 5);
   const yMax = ticks[ticks.length - 1];
 
@@ -174,7 +251,7 @@ function renderChart(m) {
   const x = (year) => PAD.left + ((year - 1) / span) * (W - PAD.left - PAD.right);
   const y = (v) => H - PAD.bottom - (Math.max(0, v) / yMax) * (H - PAD.top - PAD.bottom);
 
-  const s1 = cssVar("--series-1"), s3 = cssVar("--series-3");
+  const s1 = cssVar("--series-1"), s3 = cssVar("--series-3"), crit = cssVar("--crit");
   const muted = cssVar("--text-muted"), grid = cssVar("--gridline"), base = cssVar("--baseline");
 
   for (const t of ticks) {
@@ -211,22 +288,19 @@ function renderChart(m) {
   }));
 
   /* where the saving turns into spending */
-  if (m.startYear > 1 && m.startYear <= years) {
-    const bx = x(m.startYear);
+  if (cfg.startYear > 1 && cfg.startYear <= years) {
+    const bx = x(cfg.startYear);
     svg.appendChild(el("line", {
       x1: bx, x2: bx, y1: PAD.top, y2: H - PAD.bottom,
       stroke: base, "stroke-width": 1, "stroke-dasharray": "4 3",
     }));
-    const lbl = el("text", {
-      x: bx + 6, y: PAD.top + 12, fill: muted, "font-size": 11,
-    });
-    lbl.textContent = `income starts, age ${m.startAge}`;
+    const lbl = el("text", { x: bx + 6, y: PAD.top + 12, fill: muted, "font-size": 11 });
+    lbl.textContent = `income starts, age ${cfg.startAge}`;
     svg.appendChild(lbl);
   }
 
-  /* the balance line: accumulating leg, then the drawdown leg */
-  const pts = m.rows.map((d) => `${x(d.year)},${y(d.balance)}`);
-  const cut = Math.min(m.startYear - 1, m.rows.length);
+  const pts = run.rows.map((d) => `${x(d.year)},${y(d.balance)}`);
+  const cut = Math.min(cfg.startYear - 1, pts.length);
   if (cut > 0) {
     svg.appendChild(el("polyline", {
       points: pts.slice(0, cut).join(" "), fill: "none", stroke: s1, "stroke-width": 2.5,
@@ -238,63 +312,166 @@ function renderChart(m) {
       stroke: s3, "stroke-width": 2.5,
     }));
   }
+  /* mark where the money ran out, if it did */
+  if (run.depletedYear !== null) {
+    const dx = x(run.depletedYear);
+    svg.appendChild(el("line", {
+      x1: dx, x2: dx, y1: PAD.top, y2: H - PAD.bottom, stroke: crit, "stroke-width": 1.5,
+    }));
+    const lbl = el("text", {
+      x: dx - 6, y: PAD.top + 12, "text-anchor": "end", fill: crit, "font-size": 11,
+    });
+    lbl.textContent = "runs out";
+    svg.appendChild(lbl);
+  }
 }
 
-let lastModel = null;
+function renderTable(cfg, run) {
+  const tbody = document.querySelector("#schedule tbody");
+
+  /* Rebuild the skeleton only when the horizon changes — doing it on every
+     keystroke would tear out the cell being typed in. */
+  if (tbody.children.length !== run.rows.length) {
+    tbody.innerHTML = "";
+    for (const d of run.rows) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${d.year}</td>
+        <td class="c-age"></td>
+        <td class="cell-edit"><input type="number" class="cell-input" data-col="contrib"
+              data-year="${d.year}" min="0" step="1000"
+              aria-label="Contribution for year ${d.year}"></td>
+        <td class="cell-edit"><input type="number" class="cell-input" data-col="rate"
+              data-year="${d.year}" step="0.1"
+              aria-label="Return percent for year ${d.year}"></td>
+        <td class="c-draw"></td>
+        <td class="c-ret"></td>
+        <td class="c-bal"></td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  run.rows.forEach((d, i) => {
+    const tr = tbody.children[i];
+    tr.className = d.year === cfg.startYear ? "hl" : "";
+    tr.querySelector(".c-age").textContent = d.age;
+
+    const cInput = tr.querySelector('input[data-col="contrib"]');
+    const contributing = d.year <= cfg.contribYears;
+    cInput.disabled = !contributing;
+    if (document.activeElement !== cInput) {
+      cInput.value = contributing ? Math.round(d.contribution) : "";
+    }
+    cInput.classList.toggle("custom", contributing && contribChanges.has(d.year));
+
+    const rInput = tr.querySelector('input[data-col="rate"]');
+    if (document.activeElement !== rInput) rInput.value = d.rate;
+    rInput.classList.toggle("custom", rateChanges.has(d.year));
+
+    tr.querySelector(".c-draw").textContent = d.draw ? money0(d.draw) : "—";
+    tr.querySelector(".c-ret").textContent = money0(d.ret);
+    tr.querySelector(".c-bal").textContent = money0(d.balance);
+  });
+}
+
+let lastCfg = null, lastRun = null;
 
 function render() {
-  const m = readModel();
-  lastModel = m;
+  const cfg = readConfig();
+  const run = runLedger(cfg, pattern(cfg));
+  const level = levelContribution(cfg);
+  lastCfg = cfg; lastRun = run;
 
-  document.getElementById("start-derived").textContent =
-    `${m.defer} years of growth · you are ${m.startAge}`;
-  document.getElementById("payout-derived").textContent =
-    `through age ${m.endAge}`;
-  document.getElementById("sens-income").textContent =
-    money0(m.pmt).replace("$", "");
+  byId("contrib-derived").textContent =
+    `${cfg.contribYears} contribution year${cfg.contribYears === 1 ? "" : "s"}`;
+  byId("start-derived").textContent =
+    `${cfg.startYear - 1} years of growth · you are ${cfg.startAge}`;
+  byId("payout-derived").textContent = `through age ${cfg.endAge}`;
 
-  document.getElementById("eq").innerHTML =
-    `<span class="term">Deposit today</span> =
-     <span class="term"><span class="step">value of the promise</span> ÷
-     (1 + ${pct(m.r)})<sup>${m.defer}</sup></span> =
-     <span class="ans">${money0(m.deposit)}</span>`;
+  byId("eq").innerHTML =
+    `<span class="term">Level contribution</span>,
+     <span class="term"><span class="step">years 1–${cfg.contribYears}</span></span> =
+     <span class="ans">${level === null ? "—" : money0(level)}</span>
+     <span style="font-size:.66em;font-weight:400;color:var(--text-secondary)">a year</span>`;
 
-  document.getElementById("result-tiles").innerHTML = [
-    tile("Deposit today", money0(m.deposit),
-      `funds ${money0(m.pmt)} a year for ${m.L} years`, "hero"),
-    tile("Tax saved this year", money0(m.taxSaved),
-      `the deduction at ${pct(m.tax)}`),
-    tile("Net out of pocket", money0(m.netCost), "deposit less the deduction"),
-    tile("Balance when income starts", money0(m.pvAtStart),
-      `beginning of year ${m.startYear}, age ${m.startAge}`),
-    tile("Total income received", money0(m.totalIncome),
-      `${(m.totalIncome / (m.deposit || 1)).toFixed(1)}× the deposit`),
+  renderVerdict(cfg, run, level);
+
+  const levelTotal = level === null ? 0 : level * cfg.contribYears;
+  byId("result-tiles").innerHTML = [
+    tile("Level contribution", level === null ? "—" : money0(level),
+      `each year, years 1–${cfg.contribYears}`, "hero"),
+    tile("Total contributed", money0(levelTotal), `over ${cfg.contribYears} years`),
+    tile("Tax saved", money0(levelTotal * cfg.tax), `the deduction at ${pct(cfg.tax * 100)}`),
+    tile("Net out of pocket", money0(levelTotal * (1 - cfg.tax)), "contributions less the deduction"),
+    tile("Total income received", money0(run.totalIncome),
+      `${cfg.L} payments from age ${cfg.startAge}`),
   ].join("");
 
-  document.getElementById("worked").innerHTML = renderWorked(m);
-  document.getElementById("sens-table").innerHTML = renderSensitivity(m);
+  byId("worked").innerHTML = renderWorked(cfg, run, level);
+  byId("sens-table").innerHTML = renderSensitivity(cfg);
 
-  const body = document.querySelector("#schedule tbody");
-  body.innerHTML = m.rows.map((d) => `<tr${d.year === m.startYear ? ' class="hl"' : ""}>
-      <td>${d.year}</td><td>${d.age}</td>
-      <td>${d.deposit ? money0(d.deposit) : "—"}</td>
-      <td>${d.draw ? money0(d.draw) : "—"}</td>
-      <td>${money0(d.interest)}</td>
-      <td>${money0(d.balance)}</td>
-    </tr>`).join("");
+  renderTable(cfg, run);
+  renderChart(cfg, run);
 
-  document.getElementById("residual-note").textContent =
-    `The deposit is solved so the last payment empties the plan: ${money0(m.residual)} is left `
-    + `after the final one. The highlighted row is the first payment. Interest is credited at the `
-    + `end of each year, after that year's payment has been taken out.`;
-
-  renderChart(m);
+  byId("residual-note").textContent =
+    `Flows happen at the beginning of the year; the return is credited at year end, after that `
+    + `year's contribution or payment. The highlighted row is the first payment. `
+    + `Your schedule leaves ${money0(run.residual)} after the last one.`;
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("input[type=number]").forEach((n) => {
-    n.addEventListener("input", render);
+  for (const id of ["age", "contrib-years", "start-year", "payout-years",
+                    "income", "cola", "tax", "rate"]) {
+    byId(id).addEventListener("input", render);
+  }
+
+  /* Per-year edits. Delegated, so the handler survives the row rebuilds that
+     happen when the horizon changes. */
+  const tbody = document.querySelector("#schedule tbody");
+  tbody.addEventListener("input", (ev) => {
+    const input = ev.target.closest("input.cell-input");
+    if (!input) return;
+    const year = Number(input.dataset.year);
+    const map = input.dataset.col === "rate" ? rateChanges : contribChanges;
+    const v = parseFloat(input.value);
+    if (input.value.trim() === "" || !isFinite(v)) map.delete(year);
+    else map.set(year, input.dataset.col === "rate" ? v : Math.max(0, v));
+    render();
   });
+  /* leaving a cleared cell puts the inherited value back in view */
+  tbody.addEventListener("focusout", (ev) => {
+    if (ev.target.closest("input.cell-input")) render();
+  });
+
+  byId("level-btn").addEventListener("click", () => {
+    const cfg = readConfig();
+    const level = levelContribution(cfg);
+    if (level === null) return;
+    contribChanges.clear();
+    contribChanges.set(1, Math.round(level * 100) / 100);
+    render();
+  });
+
+  byId("scale-btn").addEventListener("click", () => {
+    const cfg = readConfig();
+    const base = pattern(cfg);
+    const k = solveScale(cfg, base);
+    if (k === null) return;
+    contribChanges.clear();
+    base.slice(0, cfg.contribYears).forEach((v, i) => {
+      contribChanges.set(i + 1, Math.round(v * k * 100) / 100);
+    });
+    render();
+  });
+
+  byId("reset-btn").addEventListener("click", () => {
+    contribChanges.clear();
+    rateChanges.clear();
+    render();
+  });
+
   render();
 });
-document.addEventListener("themechange", () => { if (lastModel) renderChart(lastModel); });
+document.addEventListener("themechange", () => {
+  if (lastCfg && lastRun) renderChart(lastCfg, lastRun);
+});

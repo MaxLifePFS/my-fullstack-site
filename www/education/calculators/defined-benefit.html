@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="css/style.css?v=76ea79c8">
   <script src="js/common.js?v=efccdc49"></script>
   <style>
-    /* The answer, stated as an equation the way the tuition page does */
     .eq {
       text-align: center;
       font-size: clamp(1.05rem, 2.3vw, 1.5rem);
@@ -22,7 +21,24 @@
     .derived { color: var(--text-muted); font-size: 0.8rem; margin-top: 4px; }
     .lever td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
     .lever td { padding: 3px 0; }
-    .table-scroll { max-height: 460px; overflow-y: auto; }
+    .table-scroll { max-height: 470px; overflow-y: auto; }
+    /* a cell the user has pinned, vs one inheriting from the year above */
+    input.cell-input.custom {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+    }
+    input.cell-input:disabled { color: var(--text-muted); }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    /* the funding verdict */
+    .verdict-line {
+      margin: 0 0 16px; padding: 10px 14px;
+      border-radius: 8px; font-size: 0.9rem;
+      border: 1px solid var(--border); background: var(--page);
+    }
+    .verdict-line.ok { border-left: 3px solid var(--good); }
+    .verdict-line.bad { border-left: 3px solid var(--crit); }
+    .verdict-line b.ok { color: var(--good); }
+    .verdict-line b.bad { color: var(--crit); }
   </style>
 </head>
 <body>
@@ -36,62 +52,61 @@
     </header>
 
     <section class="panel">
-      <h2>Step 1 — when the income starts</h2>
+      <h2>Step 1 — the timeline</h2>
       <div class="form-grid">
         <div class="field">
           <label for="age">Your age today</label>
           <input type="number" id="age" value="57" min="18" max="100" step="1">
         </div>
         <div class="field">
+          <label for="contrib-years">Contribute through year</label>
+          <input type="number" id="contrib-years" value="15" min="1" max="60" step="1">
+          <div class="derived" id="contrib-derived"></div>
+        </div>
+        <div class="field">
           <label for="start-year">Income starts at beginning of year</label>
           <input type="number" id="start-year" value="16" min="1" max="60" step="1">
           <div class="derived" id="start-derived"></div>
-        </div>
-      </div>
-      <p class="note">The deposit goes in at the beginning of year 1, so it compounds for one
-        year fewer than the start year — year 16 means 15 years of growth.</p>
-    </section>
-
-    <section class="panel">
-      <h2>Step 2 — the benefit you want</h2>
-      <div class="form-grid">
-        <div class="field">
-          <label for="income">Annual income before tax ($)</label>
-          <input type="number" id="income" value="250000" min="0" step="10000">
         </div>
         <div class="field">
           <label for="payout-years">Years of payments</label>
           <input type="number" id="payout-years" value="20" min="1" max="60" step="1">
           <div class="derived" id="payout-derived"></div>
         </div>
-        <div class="field">
-          <label for="cola">Annual increase in the payment (%)</label>
-          <input type="number" id="cola" value="0" min="0" max="20" step="0.5">
-        </div>
       </div>
-      <p class="note">Payments land at the beginning of each year, the first one on the day the
-        income starts. How long they run is the single biggest lever on the deposit — a lifetime
-        benefit has to be funded to a life expectancy, not to a round number.</p>
+      <p class="note">Contributions and payments both land at the beginning of the year;
+        the return is credited at year end, after that year's flows.</p>
     </section>
 
     <section class="panel">
-      <h2>Step 3 — assumptions</h2>
+      <h2>Step 2 — the benefit, held constant</h2>
       <div class="form-grid">
         <div class="field">
-          <label for="rate">Average annual return (%)</label>
-          <input type="number" id="rate" value="8" min="-20" max="30" step="0.1">
+          <label for="income">Annual income before tax ($)</label>
+          <input type="number" id="income" value="250000" min="0" step="10000">
+        </div>
+        <div class="field">
+          <label for="cola">Annual increase in the payment (%)</label>
+          <input type="number" id="cola" value="0" min="0" max="20" step="0.5">
+          <div class="derived">0% keeps the income flat</div>
         </div>
         <div class="field">
           <label for="tax">Your tax rate today (%)</label>
           <input type="number" id="tax" value="20" min="0" max="60" step="0.5">
         </div>
+        <div class="field">
+          <label for="rate">Default annual return (%)</label>
+          <input type="number" id="rate" value="8" min="-20" max="30" step="0.1">
+          <div class="derived">seeds every year in the table</div>
+        </div>
       </div>
     </section>
 
     <section class="panel">
-      <h2>Step 4 — what you deposit today</h2>
+      <h2>Step 3 — what it takes</h2>
 
       <p class="eq" id="eq"></p>
+      <p class="verdict-line" id="verdict"></p>
 
       <div class="tiles" id="result-tiles"></div>
 
@@ -102,8 +117,8 @@
 
       <div class="explain">
         <h3>What the payout period does to the answer</h3>
-        <p>Everything above turns on how long the income has to last. The same $<span
-          id="sens-income">250,000</span> a year costs very different amounts to fund:</p>
+        <p>Everything turns on how long the income has to last. The same annual income costs
+          very different amounts to fund:</p>
         <table class="lever" id="sens-table"></table>
       </div>
     </section>
@@ -114,36 +129,49 @@
       </div>
       <div class="chart-box" id="chart-box">
         <svg id="chart" viewBox="0 0 760 380" role="img"
-             aria-label="Line chart of the plan balance by year: it compounds up until the income starts, then falls as each payment is drawn"></svg>
+             aria-label="Line chart of the plan balance by year: it builds while contributions are made, then falls as each payment is drawn"></svg>
       </div>
     </section>
 
     <section class="panel">
       <div class="chart-head">
         <h2 style="margin:0">Year-by-year schedule</h2>
+        <div class="btn-row">
+          <button type="button" class="btn-sm" id="level-btn">Level the contributions</button>
+          <button type="button" class="btn-sm" id="scale-btn">Scale my schedule to fund it</button>
+          <button type="button" class="btn-sm" id="reset-btn">Reset</button>
+        </div>
       </div>
+      <p class="note" style="margin-top:0">Both <b>Contribution</b> and <b>Return&nbsp;%</b> take
+        an entry on any year and fill every year below it, until a later year sets a new one.
+        Outlined cells are the ones you pinned. <b>Level</b> replaces the column with the equal
+        annual amount that funds the benefit exactly; <b>Scale</b> keeps the shape you typed and
+        multiplies it up or down until the last payment empties the plan.</p>
       <div class="table-scroll">
         <table class="data" id="schedule">
           <thead>
-            <tr><th>Year</th><th>Age</th><th>Deposit</th><th>Income drawn</th>
-                <th>Interest</th><th>End balance</th></tr>
+            <tr><th>Year</th><th>Age</th><th class="col-edit">Contribution</th>
+                <th class="col-edit">Return %</th><th>Income drawn</th>
+                <th>Return earned</th><th>End balance</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
       <p class="note" id="residual-note"></p>
       <p class="note"><b>Before acting on this:</b> a qualified defined benefit plan is not funded
-        by a single deposit of your choosing. An enrolled actuary sets the contribution each year
-        from the plan's benefit formula, your compensation history and the plan's own assumed rate
-        — the figure above is what the promise is worth today at the rate you entered, which is the
+        by contributions of your choosing. An enrolled actuary sets the amount each year from the
+        plan's benefit formula, your compensation history and the plan's own assumed rate — the
+        figures above are what the promise is worth at the returns you entered, which is the
         starting point for that work, not a substitute for it. Two statutory limits also bind: the
         annual benefit is capped by IRC 415(b) (indexed each year, recently around the $280,000
-        mark) and by your high-three-year average compensation. Deductibility has its own limits
-        and the deduction is a deferral, not forgiveness — every dollar of income drawn later is
-        taxed as ordinary income then.</p>
+        mark) and by your high-three-year average compensation. Deductibility has its own limits,
+        and the deduction is a deferral rather than forgiveness — every dollar of income drawn
+        later is taxed as ordinary income then. A single average return also hides sequence risk:
+        the same average delivered in a different order, with poor years early in the payout,
+        empties a plan sooner.</p>
     </section>
   </div>
 
-  <script src="js/defined-benefit.js?v=d0be65bf"></script>
+  <script src="js/defined-benefit.js?v=f0460ba2"></script>
 </body>
 </html>
