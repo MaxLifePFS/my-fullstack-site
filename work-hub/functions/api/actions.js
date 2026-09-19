@@ -23,8 +23,8 @@ async function allActions(db) {
   const { results } = await db
     .prepare(
       "SELECT id, title, status, priority, due, notes, added, completedAt FROM actions " +
-      "ORDER BY CASE status WHEN 'doing' THEN 0 WHEN 'todo' THEN 1 WHEN 'hold' THEN 2 ELSE 3 END, " +
-      "CASE WHEN status = 'done' THEN completedAt ELSE '' END DESC, added, id"
+      "ORDER BY CASE WHEN status = 'done' THEN 1 ELSE 0 END, " +
+      "CASE WHEN status = 'done' THEN completedAt ELSE added END DESC, rowid DESC"
     )
     .all();
   return results;
