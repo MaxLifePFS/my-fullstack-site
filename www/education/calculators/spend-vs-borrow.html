@@ -30,6 +30,24 @@
       100% { transform: translateY(26px); opacity: 0; }
     }
     @media (prefers-reduced-motion: reduce) { .drip { animation: none; } }
+    /* The two pies: the same cash need, taken two different ways */
+    .pie-pair {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 10px 28px;
+      margin: 22px 0 4px;
+    }
+    .pie-fig { margin: 0; }
+    .pie-fig svg { display: block; width: 100%; height: auto; }
+    .pie-head {
+      font-size: 0.92rem; font-weight: 600; text-align: center;
+      color: var(--text-primary); margin-bottom: 2px;
+    }
+    .pie-cap {
+      font-size: 0.82rem; line-height: 1.55; color: var(--text-secondary);
+      margin: 2px 0 0; text-align: center;
+    }
+    .pie-cap b { color: var(--text-primary); }
   </style>
 </head>
 <body>
@@ -217,6 +235,55 @@
           <text x="775" y="458" text-anchor="middle" font-size="12" fill="var(--text-secondary)">2 · Loan balance</text>
           <text id="b-status" x="665" y="480" text-anchor="middle" font-size="12" font-weight="600" fill="var(--good)"></text>
         </svg>
+      </div>
+
+      <div class="pie-pair">
+        <figure class="pie-fig">
+          <p class="pie-head">A — spend the cash</p>
+          <svg viewBox="0 0 330 290" role="img" aria-labelledby="pa-t pa-d">
+            <title id="pa-t">Spending takes a slice out of the pie</title>
+            <desc id="pa-d">A pie of one hundred thousand dollars with a twenty thousand dollar
+              slice cut away and moved aside, leaving eighty thousand dollars behind.</desc>
+            <path d="M142 145 L143.6 53 A92 92 0 1 1 55 115 Z" fill="var(--series-1)"/>
+            <path d="M127.7 124.5 L40.7 94.6 A92 92 0 0 1 129.3 32.5 Z" fill="var(--series-3)"/>
+            <text x="166.3" y="179.7" text-anchor="middle" font-size="19" font-weight="700"
+                  fill="#fff">$80,000</text>
+            <text x="97.1" y="80.8" text-anchor="middle" font-size="15" font-weight="700"
+                  fill="#fff">$20,000</text>
+            <text x="165" y="252" text-anchor="middle" font-size="13"
+                  fill="var(--text-secondary)">the slice is gone for good</text>
+            <text x="165" y="272" text-anchor="middle" font-size="13" font-weight="600"
+                  fill="var(--series-1)">$80,000 keeps compounding</text>
+          </svg>
+          <p class="pie-cap">Every dollar spent <b>leaves the pie</b>. Next year's need comes
+            out of a smaller one, and the year after that out of one smaller still.</p>
+        </figure>
+
+        <figure class="pie-fig">
+          <p class="pie-head">B — borrow the cash</p>
+          <svg viewBox="0 0 330 290" role="img" aria-labelledby="pb-t pb-d">
+            <title id="pb-t">Borrowing leaves the pie whole</title>
+            <desc id="pb-d">A whole pie of one hundred thousand dollars, with dashed lines
+              showing where a twenty thousand dollar slice would have been cut, and that slice
+              drawn separately outside the pie as a loan.</desc>
+            <circle cx="128" cy="160" r="92" fill="var(--series-1)"/>
+            <line x1="128" y1="160" x2="124.8" y2="68.1" stroke="#fff" stroke-width="2.5"
+                  stroke-dasharray="7 6" stroke-linecap="round"/>
+            <line x1="128" y1="160" x2="214.5" y2="128.5" stroke="#fff" stroke-width="2.5"
+                  stroke-dasharray="7 6" stroke-linecap="round"/>
+            <text x="128" y="182" text-anchor="middle" font-size="19" font-weight="700"
+                  fill="#fff">$100,000</text>
+            <path d="M246 92 L243.8 30 A62 62 0 0 1 304.3 70.8 Z" fill="var(--series-3)"/>
+            <text x="269.6" y="57" text-anchor="middle" font-size="13" font-weight="700"
+                  fill="#fff">$20,000</text>
+            <text x="266" y="118" text-anchor="middle" font-size="12"
+                  fill="var(--text-secondary)">borrowed, not cut</text>
+            <text x="165" y="272" text-anchor="middle" font-size="13" font-weight="600"
+                  fill="var(--series-2)">$100,000 keeps compounding</text>
+          </svg>
+          <p class="pie-cap">You take the same $20,000, but the pie is <b>never cut</b>. The
+            whole $100,000 goes on compounding while the loan compounds more slowly beside it.</p>
+        </figure>
       </div>
       <p class="note">Water levels are the calculator's own numbers — each bucket is that
         year's end-of-year balance from the table below. All three share one fixed scale that
