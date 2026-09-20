@@ -21,7 +21,7 @@ function readInputs() {
     aRatePct: numInput("a-rate", 8, -50, 100),
     bRatePct: numInput("b-rate", 8, -50, 100),
     retire: numInput("retire", 300000, 0, 1e12),
-    horizon: Math.round(numInput("horizon", 35, 1, 120)),
+    horizon: Math.round(numInput("horizon", 40, 1, 120)),
     premium: numInput("premium", 10000, 0, 1e12),
     loanRatePct: numInput("loan-rate", 5, 0, 50),
     coverage: numInput("coverage", 1000000, 0, 1e12),
