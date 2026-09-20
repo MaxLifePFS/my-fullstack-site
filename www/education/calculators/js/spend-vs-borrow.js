@@ -354,7 +354,7 @@ function renderTable() {
    any legibility it bought.) The cap follows the horizon input, so shortening
    the horizon zooms the whole illustration in. */
 
-const BK_BOT = 405, BK_MAXH = 239;
+const BK_BOT = 478, BK_MAXH = 318;
 let bkYear = 1, bkTimer = null, bkCap = 1;
 
 function byId(id) { return document.getElementById(id); }
@@ -396,7 +396,7 @@ function renderBuckets() {
   byId("a-val").textContent = fmtCurrency(aBal);
   byId("a-status").textContent = aDead
     ? "EMPTY — ran out in year " + sim.a.depletionYear : "";
-  byId("a-body").setAttribute("stroke", aDead ? "var(--crit)" : "var(--baseline)");
+  byId("a-body").setAttribute("stroke", aDead ? "var(--crit)" : "var(--text-muted)");
 
   byId("b-pour").setAttribute("opacity", saving ? 1 : 0);
   byId("b-pour-amt").textContent =
