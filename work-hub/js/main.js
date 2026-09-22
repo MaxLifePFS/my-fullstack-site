@@ -36,7 +36,8 @@ const GROUPS = [
       { name: 'TSI — RealAuction', url: 'https://www.realauction.com/clients' },
       { name: 'Zillow Rental Manager', url: 'https://www.zillow.com/rental-manager/properties' },
       { name: 'Facebook Marketplace', url: 'https://www.messenger.com/marketplace/t/24638346622435339' },
-      { name: 'UTD Off-Campus Housing', url: 'https://www.dallasoffcampus.com/' }
+      { name: 'UTD Off-Campus Housing', url: 'https://www.dallasoffcampus.com/' },
+      { name: 'Furnished Finder', url: 'https://www.furnishedfinder.com/members/pm-dashboard?p=1044019_1' }
     ]
   },
   {
