@@ -471,6 +471,20 @@ html[data-lang="zh"] h3 { letter-spacing: 0; }
 .skip:focus { left: 0; }
 :focus-visible { outline: 3px solid var(--emerald-lt); outline-offset: 2px; border-radius: 4px; }
 
+/* ---------- author banner (full-width band under the stats strip) ---------- */
+.author-banner {
+  background: var(--ink);
+  padding: 0 0 clamp(40px, 5vw, 64px);
+}
+.banner-link {
+  display: block;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+.banner-link:hover { transform: translateY(-3px); box-shadow: 0 18px 38px rgba(0,0,0,.42); }
+.banner-link img { display: block; width: 100%; height: auto; }
+
 /* ---------- hero book card (cover on top, copy beneath) ---------- */
 .book-card {
   display: grid;
