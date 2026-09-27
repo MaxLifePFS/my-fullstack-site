@@ -126,6 +126,10 @@ function renderTaxExample(taxPct, inflPct, qualified) {
   const box = document.getElementById("tax-example");
   const intro = document.getElementById("tax-intro");
 
+  document.getElementById("acct-hint").textContent = qualified
+    ? "the whole withdrawal is taxable income"
+    : "only the gain inside each withdrawal is taxed";
+
   intro.innerHTML = qualified
     ? 'Every dollar out of a <b>qualified</b> account is ordinary income — there is no '
       + 'basis to come back untaxed, so the whole withdrawal is taxed however long you '
