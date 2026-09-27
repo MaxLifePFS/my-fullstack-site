@@ -27,9 +27,10 @@ const contribChanges = new Map();
    account is (balance - basis) / balance, where basis is the contributions
    still in the account. The withdrawal is grossed up so the after-tax cash
    equals the income asked for:  gross = income / (1 - gainShare x taxRate). */
-function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years) {
+function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years, inflPct) {
   const r = ratePct / 100;
   const t = taxPct / 100;
+  const g = (inflPct || 0) / 100;   // the income target grows at this each year
   const out = [{
     year: 0, contribution: 0, income: 0, tax: 0, gross: 0, interestYear: 0,
     balance: 0, totalContributed: 0, totalInterest: 0, totalIncome: 0, totalTax: 0,
@@ -39,7 +40,7 @@ function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years)
   let depletionYear = null;
 
   for (let y = 1; y <= years; y++) {
-    let contribution = 0, gotIncome = 0, tax = 0, gross = 0;
+    let contribution = 0, gotIncome = 0, tax = 0, gross = 0, want = 0;
     let gainShare = 0, gainPart = 0, basisPart = 0, balBefore = balance, basisBefore = basis;
 
     if (y <= contribYears) {
@@ -51,9 +52,12 @@ function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years)
     } else if (income > 0 && balance > 0) {
       balBefore = balance;
       basisBefore = basis;
+      /* year contribYears+1 is the first draw, so it gets the figure as typed
+         and each later year is inflated from it */
+      want = income * Math.pow(1 + g, y - contribYears - 1);
       gainShare = Math.max(0, Math.min(1, (balance - basis) / balance));
       const keep = 1 - gainShare * t;
-      const wanted = keep > 0 ? income / keep : balance;
+      const wanted = keep > 0 ? want / keep : balance;
       gross = Math.min(wanted, balance);
       gainPart = gross * gainShare;      // the taxable slice of the withdrawal
       basisPart = gross - gainPart;      // your own money coming back, untaxed
@@ -74,7 +78,7 @@ function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years)
     totalInterest += interestYear;
 
     out.push({
-      year: y, contribution, income: gotIncome, tax, gross, interestYear,
+      year: y, contribution, income: gotIncome, want, tax, gross, interestYear,
       balance, totalContributed, totalInterest, totalIncome, totalTax,
       balBefore, basisBefore, gainShare, gainPart, basisPart,
     });
@@ -89,15 +93,16 @@ function readInputsAndRender() {
   const contribYears = Math.min(years, Math.round(numInput("contrib-years", 20, 0, 100)));
   const income = numInput("withdrawal", 500000, 0, 1e12);
   const taxPct = numInput("tax-rate", 15, 0, 60);
+  const inflPct = numInput("income-infl", 0, 0, 20);
 
   const focusInput = document.getElementById("focus-year");
   focusInput.max = years;
   const focusYear = Math.round(numInput("focus-year", years, 1, years));
 
-  rows = computeSchedule(START_CONTRIBUTION, rate, contribYears, income, taxPct, years);
+  rows = computeSchedule(START_CONTRIBUTION, rate, contribYears, income, taxPct, years, inflPct);
 
   renderTiles(focusYear, contribYears);
-  renderTaxExample(taxPct);
+  renderTaxExample(taxPct, inflPct);
   renderChart(contribYears);
   renderTable(focusYear, contribYears);
   bkRescale(contribYears);
@@ -106,7 +111,7 @@ function readInputsAndRender() {
 /* A worked example built from the live numbers, so it can never go stale. Shows
    the first drawdown year in full, then contrasts it with the last one — the
    taxable share climbs as contributions are drawn out and gains are left behind. */
-function renderTaxExample(taxPct) {
+function renderTaxExample(taxPct, inflPct) {
   const box = document.getElementById("tax-example");
   const draws = rows.filter(d => d.gross > 0);
   if (!draws.length) {
@@ -116,11 +121,11 @@ function renderTaxExample(taxPct) {
   const pct = v => (v * 100).toFixed(1) + "%";
   const f = draws[0];
   /* Compare against the last year that paid a FULL income. The year the money
-     runs out pays whatever is left, so using it would make "the same income"
-     quote a smaller figure than the example above. */
-  const target = Math.max.apply(null, draws.map(d => d.income));
-  const full = draws.filter(d => d.income >= target - 1);
-  const l = full[full.length - 1];
+     runs out pays whatever is left, so using it would quote a short figure.
+     Each year is measured against what IT asked for, not against the largest
+     draw — once the income inflates, the largest draw is simply the last one. */
+  const full = draws.filter(d => d.income >= d.want - 1);
+  const l = full.length ? full[full.length - 1] : draws[draws.length - 1];
 
   let html =
     '<div class="worked">' +
@@ -145,8 +150,12 @@ function renderTaxExample(taxPct) {
     html +=
       '<p class="step-figs"><b>It costs more every year.</b> Each withdrawal takes your own ' +
       'contributions out first, leaving a bigger share of gain behind. By year ' + l.year +
-      ' the account is ' + pct(l.gainShare) + ' gain, so the same ' + fmtCurrency(l.income) +
-      ' of spending money needs ' + fmtCurrency(l.gross) + ' sold and costs <b>' +
+      ' the account is ' + pct(l.gainShare) + ' gain, so ' +
+      (inflPct > 0
+        ? "that year's " + fmtCurrency(l.income) + ' of spending money (grown from ' +
+          fmtCurrency(f.income) + ' at ' + inflPct + '%/yr)'
+        : 'the same ' + fmtCurrency(l.income) + ' of spending money') +
+      ' needs ' + fmtCurrency(l.gross) + ' sold and costs <b>' +
       fmtCurrency(l.tax) + '</b> in tax' +
       (more > 0 ? ' — ' + fmtCurrency(more) + ' more than year ' + f.year : '') + '.</p>' +
       '<p>Across the whole drawdown you hand over <b>' + fmtCurrency(l.totalTax) +
@@ -461,7 +470,8 @@ function bkStop() {
 /* ---- Wire up ---- */
 
 document.addEventListener("DOMContentLoaded", () => {
-  for (const id of ["rate", "years", "contrib-years", "withdrawal", "tax-rate", "focus-year"]) {
+  for (const id of ["rate", "years", "contrib-years", "withdrawal", "income-infl",
+                    "tax-rate", "focus-year"]) {
     document.getElementById(id).addEventListener("input", readInputsAndRender);
   }
 
