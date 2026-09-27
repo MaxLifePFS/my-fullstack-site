@@ -10,6 +10,7 @@ const PAD = { top: 16, right: 16, bottom: 34, left: 64 };
 
 let rows = [];
 let chartGeom = null;
+let currentAge = 57;
 
 /* Contributions are entered in the table, not in a form field. This seeds the
    column on first load; typing an amount on year 1 replaces it everywhere. */
@@ -27,7 +28,7 @@ const contribChanges = new Map();
    account is (balance - basis) / balance, where basis is the contributions
    still in the account. The withdrawal is grossed up so the after-tax cash
    equals the income asked for:  gross = income / (1 - gainShare x taxRate). */
-function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years, inflPct) {
+function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years, inflPct, qualified) {
   const r = ratePct / 100;
   const t = taxPct / 100;
   const g = (inflPct || 0) / 100;   // the income target grows at this each year
@@ -55,7 +56,12 @@ function computeSchedule(defaultC, ratePct, contribYears, income, taxPct, years,
       /* year contribYears+1 is the first draw, so it gets the figure as typed
          and each later year is inflated from it */
       want = income * Math.pow(1 + g, y - contribYears - 1);
-      gainShare = Math.max(0, Math.min(1, (balance - basis) / balance));
+      /* qualified: every dollar out is taxable income, so the whole withdrawal
+         is "gain" as far as the tax is concerned and basis never shelters any
+         of it. Non-qualified splits the withdrawal pro-rata. */
+      gainShare = qualified
+        ? 1
+        : Math.max(0, Math.min(1, (balance - basis) / balance));
       const keep = 1 - gainShare * t;
       const wanted = keep > 0 ? want / keep : balance;
       gross = Math.min(wanted, balance);
@@ -94,15 +100,20 @@ function readInputsAndRender() {
   const income = numInput("withdrawal", 500000, 0, 1e12);
   const taxPct = numInput("tax-rate", 15, 0, 60);
   const inflPct = numInput("income-infl", 0, 0, 20);
+  const age = Math.round(numInput("age", 57, 0, 110));
+  const picked = document.querySelector('input[name="acct"]:checked');
+  const qualified = !!picked && picked.value === "qual";
 
   const focusInput = document.getElementById("focus-year");
   focusInput.max = years;
   const focusYear = Math.round(numInput("focus-year", years, 1, years));
 
-  rows = computeSchedule(START_CONTRIBUTION, rate, contribYears, income, taxPct, years, inflPct);
+  rows = computeSchedule(START_CONTRIBUTION, rate, contribYears, income, taxPct, years, inflPct,
+                         qualified);
+  currentAge = age;
 
   renderTiles(focusYear, contribYears);
-  renderTaxExample(taxPct, inflPct);
+  renderTaxExample(taxPct, inflPct, qualified);
   renderChart(contribYears);
   renderTable(focusYear, contribYears);
   bkRescale(contribYears);
@@ -111,8 +122,21 @@ function readInputsAndRender() {
 /* A worked example built from the live numbers, so it can never go stale. Shows
    the first drawdown year in full, then contrasts it with the last one — the
    taxable share climbs as contributions are drawn out and gains are left behind. */
-function renderTaxExample(taxPct, inflPct) {
+function renderTaxExample(taxPct, inflPct, qualified) {
   const box = document.getElementById("tax-example");
+  const intro = document.getElementById("tax-intro");
+
+  intro.innerHTML = qualified
+    ? 'Every dollar out of a <b>qualified</b> account is ordinary income — there is no '
+      + 'basis to come back untaxed, so the whole withdrawal is taxed however long you '
+      + 'have held it. The income you enter is what you actually receive, so the '
+      + 'withdrawal is grossed up to cover the tax.'
+    : 'Only the <b>gain</b> inside a withdrawal is taxed. The part that is your own '
+      + 'contributions coming back is never taxed again, so every withdrawal is split '
+      + 'pro-rata between the two — the same way a brokerage reports it. The income you '
+      + 'enter is what you actually receive, so the withdrawal is grossed up to cover '
+      + 'the tax.';
+
   const draws = rows.filter(d => d.gross > 0);
   if (!draws.length) {
     box.innerHTML = '<p>Set an income above and a worked example will appear here.</p>';
@@ -130,35 +154,59 @@ function renderTaxExample(taxPct, inflPct) {
   let html =
     '<div class="worked">' +
       '<div class="worked-head">Year ' + f.year + ' — the first withdrawal</div>' +
-      '<p class="step-figs">The account holds ' + fmtCurrency(f.balBefore) + ', of which ' +
-        fmtCurrency(f.basisBefore) + ' is money you put in. That makes <b>' +
-        pct(f.gainShare) + ' of every dollar you take out a gain</b>.</p>' +
-      '<ul class="step-figs">' +
-        '<li>You want <b>' + fmtCurrency(f.income) + '</b> to spend.</li>' +
-        '<li>So you sell <b>' + fmtCurrency(f.gross) + '</b> — of that, ' +
-          fmtCurrency(f.gainPart) + ' is gain and ' + fmtCurrency(f.basisPart) +
-          ' is your own money back.</li>' +
-        '<li>Tax = ' + taxPct + '% × ' + fmtCurrency(f.gainPart) + ' = <b>' +
-          fmtCurrency(f.tax) + '</b>. The ' + fmtCurrency(f.basisPart) + ' is not taxed.</li>' +
-        '<li>You receive ' + fmtCurrency(f.gross) + ' − ' + fmtCurrency(f.tax) +
-          ' = <b>' + fmtCurrency(f.income) + '</b>.</li>' +
-      '</ul>' +
+      (qualified
+        ? '<p class="step-figs">The account holds ' + fmtCurrency(f.balBefore) +
+            '. <b>All of it is taxable when it comes out.</b></p>' +
+          '<ul class="step-figs">' +
+            '<li>You want <b>' + fmtCurrency(f.income) + '</b> to spend.</li>' +
+            '<li>So you withdraw <b>' + fmtCurrency(f.gross) + '</b> — every dollar of ' +
+              'it counts as income.</li>' +
+            '<li>Tax = ' + taxPct + '% × ' + fmtCurrency(f.gross) + ' = <b>' +
+              fmtCurrency(f.tax) + '</b>.</li>' +
+            '<li>You receive ' + fmtCurrency(f.gross) + ' − ' + fmtCurrency(f.tax) +
+              ' = <b>' + fmtCurrency(f.income) + '</b>.</li>' +
+          '</ul>'
+        : '<p class="step-figs">The account holds ' + fmtCurrency(f.balBefore) + ', of which ' +
+            fmtCurrency(f.basisBefore) + ' is money you put in. That makes <b>' +
+            pct(f.gainShare) + ' of every dollar you take out a gain</b>.</p>' +
+          '<ul class="step-figs">' +
+            '<li>You want <b>' + fmtCurrency(f.income) + '</b> to spend.</li>' +
+            '<li>So you sell <b>' + fmtCurrency(f.gross) + '</b> — of that, ' +
+              fmtCurrency(f.gainPart) + ' is gain and ' + fmtCurrency(f.basisPart) +
+              ' is your own money back.</li>' +
+            '<li>Tax = ' + taxPct + '% × ' + fmtCurrency(f.gainPart) + ' = <b>' +
+              fmtCurrency(f.tax) + '</b>. The ' + fmtCurrency(f.basisPart) + ' is not taxed.</li>' +
+            '<li>You receive ' + fmtCurrency(f.gross) + ' − ' + fmtCurrency(f.tax) +
+              ' = <b>' + fmtCurrency(f.income) + '</b>.</li>' +
+          '</ul>') +
     '</div>';
 
   if (l.year > f.year) {
     const more = l.tax - f.tax;
-    html +=
-      '<p class="step-figs"><b>It costs more every year.</b> Each withdrawal takes your own ' +
-      'contributions out first, leaving a bigger share of gain behind. By year ' + l.year +
-      ' the account is ' + pct(l.gainShare) + ' gain, so ' +
-      (inflPct > 0
-        ? "that year's " + fmtCurrency(l.income) + ' of spending money (grown from ' +
-          fmtCurrency(f.income) + ' at ' + inflPct + '%/yr)'
-        : 'the same ' + fmtCurrency(l.income) + ' of spending money') +
-      ' needs ' + fmtCurrency(l.gross) + ' sold and costs <b>' +
-      fmtCurrency(l.tax) + '</b> in tax' +
-      (more > 0 ? ' — ' + fmtCurrency(more) + ' more than year ' + f.year : '') + '.</p>' +
-      '<p>Across the whole drawdown you hand over <b>' + fmtCurrency(l.totalTax) +
+    const thatYear = inflPct > 0
+      ? "that year's " + fmtCurrency(l.income) + ' of spending money (grown from ' +
+        fmtCurrency(f.income) + ' at ' + inflPct + '%/yr)'
+      : 'the same ' + fmtCurrency(l.income) + ' of spending money';
+
+    /* Qualified is already 100% taxable on day one, so the bill only moves if the
+       income itself moves — claiming it "costs more every year" would be false. */
+    html += qualified
+      ? '<p class="step-figs"><b>The rate never improves.</b> The share that is taxable ' +
+          'starts at 100% and stays there, so by year ' + l.year + ' ' + thatYear +
+          ' still needs ' + fmtCurrency(l.gross) + ' withdrawn and costs <b>' +
+          fmtCurrency(l.tax) + '</b> in tax' +
+          (more > 0.5
+            ? ' — ' + fmtCurrency(more) + ' more than year ' + f.year +
+              ', purely because the income grew'
+            : ', exactly as in year ' + f.year) + '.</p>'
+      : '<p class="step-figs"><b>It costs more every year.</b> Each withdrawal takes your own ' +
+          'contributions out first, leaving a bigger share of gain behind. By year ' + l.year +
+          ' the account is ' + pct(l.gainShare) + ' gain, so ' + thatYear +
+          ' needs ' + fmtCurrency(l.gross) + ' sold and costs <b>' +
+          fmtCurrency(l.tax) + '</b> in tax' +
+          (more > 0 ? ' — ' + fmtCurrency(more) + ' more than year ' + f.year : '') + '.</p>';
+
+    html += '<p>Across the whole drawdown you hand over <b>' + fmtCurrency(l.totalTax) +
       '</b> in tax to receive ' + fmtCurrency(l.totalIncome) + ' of income.</p>';
   }
   box.innerHTML = html;
@@ -374,6 +422,7 @@ function renderTable(focusYear, contribYears) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${d.year}</td>
+        <td class="c-age"></td>
         <td class="cell-edit"><input type="number" class="cell-input" data-year="${d.year}"
               min="0" step="500" aria-label="Contribution for year ${d.year}"></td>
         <td class="c-income"></td>
@@ -388,6 +437,7 @@ function renderTable(focusYear, contribYears) {
   yearRows.forEach((d, i) => {
     const tr = tbody.children[i];
     tr.className = d.year === focusYear ? "hl" : "";
+    tr.querySelector(".c-age").textContent = currentAge + d.year - 1;
     const input = tr.querySelector("input.cell-input");
     const saving = d.year <= contribYears;
     input.disabled = !saving;
@@ -471,7 +521,7 @@ function bkStop() {
 
 document.addEventListener("DOMContentLoaded", () => {
   for (const id of ["rate", "years", "contrib-years", "withdrawal", "income-infl",
-                    "tax-rate", "focus-year"]) {
+                    "tax-rate", "focus-year", "age"]) {
     document.getElementById(id).addEventListener("input", readInputsAndRender);
   }
 
@@ -490,6 +540,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Leaving a cleared cell puts the inherited amount back in view
   tbody.addEventListener("focusout", ev => {
     if (ev.target.closest("input.cell-input")) readInputsAndRender();
+  });
+
+  document.querySelectorAll('input[name="acct"]').forEach((el) => {
+    el.addEventListener("input", readInputsAndRender);
   });
 
   document.getElementById("reset-contribs").addEventListener("click", () => {

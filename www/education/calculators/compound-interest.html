@@ -30,6 +30,18 @@
       100% { transform: translateY(26px); opacity: 0; }
     }
     @media (prefers-reduced-motion: reduce) { .drip { animation: none; } }
+    /* Segmented radio — reads as one control rather than two loose dots */
+    .seg { display: inline-flex; border: 1px solid var(--baseline); border-radius: 9px; overflow: hidden; }
+    .seg label { position: relative; cursor: pointer; }
+    .seg input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .seg span {
+      display: block; padding: 6px 16px; font-size: 0.88rem;
+      color: var(--text-secondary); background: var(--page); white-space: nowrap;
+    }
+    .seg label + label span { border-left: 1px solid var(--baseline); }
+    .seg input:checked + span { background: var(--accent); color: #fff; font-weight: 600; }
+    .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .field-wide { grid-column: span 2; }
   </style>
 </head>
 <body>
@@ -48,6 +60,10 @@
         <div class="field">
           <label aria-hidden="true">&nbsp;</label>
           <div class="field-static">Table Enter Below ↓</div>
+        </div>
+        <div class="field">
+          <label for="age">Your age today</label>
+          <input type="number" id="age" value="57" min="0" max="110" step="1">
         </div>
         <div class="field">
           <label for="contrib-years">Contribute through year</label>
@@ -69,6 +85,13 @@
           <label for="tax-rate">Tax on gains when taking out (%)</label>
           <input type="number" id="tax-rate" value="15" min="0" max="60" step="0.5">
         </div>
+        <div class="field field-wide">
+          <label>Tax situation</label>
+          <div class="seg" role="radiogroup" aria-label="Tax situation">
+            <label><input type="radio" name="acct" value="nonqual" checked><span>Non-qualified — only the gain is taxed</span></label>
+            <label><input type="radio" name="acct" value="qual"><span>Qualified — all of it is taxed</span></label>
+          </div>
+        </div>
         <div class="field">
           <label for="years">Total years</label>
           <input type="number" id="years" value="40" min="1" max="100" step="1">
@@ -80,11 +103,7 @@
       </div>
       <div class="explain" id="tax-explain">
         <h3>How the tax works</h3>
-        <p>Only the <b>gain</b> inside a withdrawal is taxed. The part that is your own
-          contributions coming back is never taxed again, so every withdrawal is split
-          pro-rata between the two — the same way a brokerage reports it. The income you
-          enter is what you actually receive, so the withdrawal is grossed up to cover the
-          tax.</p>
+        <p id="tax-intro"></p>
         <div id="tax-example"></div>
       </div>
     </section>
@@ -172,6 +191,7 @@
           <thead>
             <tr>
               <th>Year</th>
+              <th>Age</th>
               <th class="col-edit">Contribution</th>
               <th>Income taken</th>
               <th>Tax paid</th>
@@ -190,6 +210,6 @@
     </section>
   </div>
 
-  <script src="js/compound-interest.js?v=4e78679e"></script>
+  <script src="js/compound-interest.js?v=13e8494d"></script>
 </body>
 </html>
