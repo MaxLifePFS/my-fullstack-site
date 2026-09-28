@@ -307,6 +307,15 @@ table.data tr.hl td { background: color-mix(in srgb, var(--accent) 10%, transpar
 
 .note { color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; }
 
+/* The one-line statement of what a calculator argues, under the page title */
+.page-tagline {
+  margin: -6px 0 22px;
+  font-size: 1.02rem;
+  line-height: 1.5;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 /* Static text standing in for an input (points elsewhere for the value).
    Borrows the input box metrics — same padding, a transparent border in place
    of the real one — so it lines up with the fields beside it. */
