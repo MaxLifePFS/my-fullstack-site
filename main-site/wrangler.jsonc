@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "opc-onepager",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-03-25",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "FLEXSTAY_DB",
+      "database_name": "flexstay-bookings",
+      "database_id": "9a5ce9e4-2f47-478e-8b34-bea2bb25781f"
+    }
+  ]
+}

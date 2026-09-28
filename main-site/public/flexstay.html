@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>FlexStay — Room Booking Calendar</title>
+<style>
+  :root {
+    --accent: #2c4a6e; --accent-dark: #1e3550; --bg: #f5f7fa;
+    --ink: #1f2733; --muted: #64748b; --line: #dde4ec;
+    --today-bg: rgba(44, 74, 110, 0.08); --weekend: rgba(31, 39, 51, 0.035);
+    --today-col: rgba(202, 138, 4, 0.30); --today-strong: #a16207;
+    --danger: #b3392b;
+    /* Every booking is this one light green. Ink is a near-black neutral,
+       not a dark green: at ~12px a same-hue pair reads muddy even at 7:1,
+       and this separates on hue too (10.2:1). White would be 1.7:1. */
+    --booked: #4ade80; --booked-ink: #18181b;
+    --font: 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg); color: var(--ink); min-height: 100vh; font-size: 15px; line-height: 1.45; }
+
+  .topbar { background: var(--accent-dark); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .topbar h1 { font-size: 1.12rem; font-weight: 700; letter-spacing: -0.01em; margin-right: auto; }
+  .topbar .today-label { font-size: .85rem; opacity: .85; font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 1900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  .btn { font-family: var(--font); font-size: .88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: opacity .15s; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-accent:hover { background: var(--accent-dark); }
+  .btn-line { background: #fff; color: var(--accent-dark); border-color: var(--line); }
+  .btn-line:hover { background: var(--bg); }
+  .btn-danger { background: #fff; color: var(--danger); border-color: #e8c8c2; }
+  .btn-danger:hover { background: #fbeeec; }
+  .btn:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .hidden { display: none !important; }
+
+  /* Link cards to the public FlexStay site and the Airbnb multi-calendar */
+  .site-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; max-width: 1180px; }
+  .site-card { display: flex; align-items: center; gap: 14px; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 14px; padding: 14px 18px; text-decoration: none; color: inherit; transition: box-shadow .15s, border-color .15s; }
+  .site-card:hover { border-color: var(--accent); box-shadow: 0 4px 14px rgba(31, 39, 51, .10); }
+  .site-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .site-card .icon { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--today-bg); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+  .site-card .text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .site-card .title { font-weight: 700; font-size: .98rem; color: var(--accent-dark); letter-spacing: -0.01em; }
+  .site-card .sub { font-size: .84rem; color: var(--muted); }
+  .site-card .go { margin-left: auto; flex: none; font-size: .86rem; font-weight: 600; color: var(--accent); white-space: nowrap; }
+  .site-card.airbnb { border-left-color: #ff5a5f; }
+  .site-card.airbnb:hover { border-color: #ff5a5f; }
+  .site-card.airbnb .icon { background: rgba(255, 90, 95, .10); }
+  .site-card.airbnb .go { color: #e0484d; }
+  @media (max-width: 900px) {
+    .site-cards { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .site-card { flex-wrap: wrap; gap: 10px; }
+    .site-card .go { margin-left: 54px; }
+  }
+
+  /* Property tabs */
+  .prop-tabs { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; }
+  .prop-tab { font-family: var(--font); font-size: .95rem; font-weight: 600; padding: 9px 20px; border-radius: 10px; border: 1.5px solid var(--line); background: #fff; color: var(--ink); cursor: pointer; }
+  .prop-tab:hover { border-color: var(--accent); }
+  .prop-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .prop-tab .n { font-weight: 400; opacity: .75; font-size: .82rem; margin-left: 6px; font-variant-numeric: tabular-nums; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; font-size: .86rem; }
+  .chip strong { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--booked); border: 1px solid var(--booked-ink); }
+
+  /* Toolbar */
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+  .month-nav { display: flex; align-items: center; gap: 4px; background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 3px; }
+  .month-nav .label { min-width: 138px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent-dark); }
+  .btn-nav { border: none; background: none; padding: 5px 12px; font-size: 1.05rem; line-height: 1; cursor: pointer; border-radius: 7px; color: var(--accent-dark); }
+  .btn-nav:hover { background: var(--bg); }
+  .spacer { flex: 1; }
+
+  /* Tape chart */
+  .chart-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  /* Column width and type scale are recomputed on every render from the
+     available width (see sizeChart), so 1-2 months fit without scrolling. */
+  .chart-scroll { overflow-x: auto; --cell-w: 38px; --day-font: .85rem; --dow-font: .62rem; --bar-font: .84rem; --bar-pad: 10px; --today-dot: 22px; }
+  /* min-width so each row spans its full track width: a row box clipped to the
+     container width would paint its dark band short on long months. */
+  .grid-row { display: grid; min-width: max-content; }
+  .room-cell { position: sticky; left: 0; z-index: 3; background: #fff; border-right: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; font-weight: 600; font-size: .9rem; white-space: nowrap; }
+  .head .room-cell { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .day-head { grid-row: 1; text-align: center; padding: 7px 0 6px; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .day-head .dow { display: block; font-size: var(--dow-font); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .day-head .num { display: block; font-size: var(--day-font); font-weight: 600; margin-top: 1px; }
+  .day-head.today .num { background: var(--today-strong); color: #fff; border-radius: 999px; width: var(--today-dot); line-height: var(--today-dot); margin: 1px auto 0; }
+  .body-row { border-top: 1px solid var(--line); height: 46px; }
+  /* Property separator: one solid dark band across the full width. */
+  .prop-row { border-top: 1px solid var(--line); height: 40px; background: var(--ink); }
+  .prop-row .room-cell { background: var(--ink); border-right-color: var(--ink); text-transform: uppercase; font-size: 1rem; font-weight: 700; letter-spacing: .08em; color: #fff; }
+  .prop-row .day-fill { grid-row: 1; background: var(--ink); border-left: 1px solid var(--ink); }
+  .day-cell { grid-row: 1; border-left: 1px solid var(--line); cursor: pointer; }
+  .day-cell:hover { background: var(--today-bg); }
+  .weekend { background: var(--weekend); }
+  .day-cell.todaycol, .day-head.today { background: var(--today-col); }
+  .day-cell.todaycol:hover { background: var(--today-col); filter: brightness(1.05); }
+
+  /* Under ~17px a column has no room for both lines, so the weekday letter
+     goes and the date keeps the space (weekends still read from the shading). */
+  .chart-scroll.dense .day-head { padding: 10px 0 9px; }
+  .chart-scroll.dense .day-head .dow { display: none; }
+
+  /* Month name band above the day numbers, shown when 2 months are on screen. */
+  .month-band { height: 24px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .month-band .room-cell { background: var(--bg); }
+  .month-band .mlabel { grid-row: 1; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--accent-dark); white-space: nowrap; overflow: hidden; }
+  /* Where one month hands over to the next, draw a stronger rule. */
+  .day-head.month-start, .day-cell.month-start, .mlabel.month-start { border-left: 2px solid var(--accent); }
+  .prop-row .day-fill.month-start { border-left: 2px solid rgba(255, 255, 255, .45); }
+
+
+  .bar { grid-row: 1; z-index: 2; align-self: center; height: 32px; margin: 0 2px; padding: 0 var(--bar-pad); border-radius: 8px; border: none; display: flex; align-items: center; overflow: hidden; background: var(--booked); color: var(--booked-ink); font-size: var(--bar-font); font-weight: 700; white-space: nowrap; cursor: pointer; text-align: left; font-family: var(--font); }
+  /* Deepen on hover -- brightening an already-light green just washes it out. */
+  .bar:hover { filter: brightness(.94); }
+  .bar.cut-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
+  .bar.cut-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
+  .bar .cont { opacity: .85; font-weight: 600; margin: 0 4px; }
+
+  .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
+  .banner { background: #fbeeec; border: 1px solid #e8c8c2; color: var(--danger); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: .9rem; font-weight: 600; }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; z-index: 20; background: rgba(30, 53, 80, .45); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 10px 30px rgba(31,39,51,.18); width: 100%; max-width: 420px; padding: 24px 22px 18px; }
+  .modal h2 { color: var(--accent-dark); margin: 0 0 16px; font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: .76rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 700; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; font: inherit; color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 9px; padding: 8px 11px; font-variant-numeric: tabular-nums; }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+  .nights { font-size: .84rem; color: var(--muted); margin: -4px 0 12px; font-variant-numeric: tabular-nums; }
+  .err { color: var(--danger); font-size: .88rem; font-weight: 600; min-height: 1.2em; margin-bottom: 10px; }
+  .modal-actions { display: flex; gap: 9px; margin-top: 6px; flex-wrap: wrap; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .modal { animation: pop .16s ease-out; }
+    @keyframes pop { from { transform: translateY(8px); opacity: 0; } }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>FlexStay — Room Booking Calendar</h1>
+  <span class="today-label" id="todayLabel"></span>
+</div>
+
+<div class="wrap">
+  <div class="banner hidden" id="errBanner"></div>
+
+  <div class="site-cards">
+    <a class="site-card" href="https://flexstay.maxlife.cc" target="_blank" rel="noopener">
+      <span class="icon" aria-hidden="true">&#127968;</span>
+      <span class="text">
+        <span class="title">FlexStay Properties Website</span>
+        <span class="sub">Rooms, photos and details for Bottlebrush, Greenhaven and Kirby — flexstay.maxlife.cc</span>
+      </span>
+      <span class="go">Visit site &#8599;</span>
+    </a>
+
+    <a class="site-card airbnb" href="https://www.airbnb.com/multicalendar" target="_blank" rel="noopener">
+      <span class="icon" aria-hidden="true">&#128197;</span>
+      <span class="text">
+        <span class="title">Airbnb Booking Calendar</span>
+        <span class="sub">Multi-calendar availability and pricing for all listings — airbnb.com/multicalendar</span>
+      </span>
+      <span class="go">Open calendar &#8599;</span>
+    </a>
+  </div>
+
+  <div class="prop-tabs" id="propTabs"></div>
+  <div class="chips" id="chips"></div>
+
+  <div class="toolbar">
+    <div class="month-nav">
+      <button class="btn-nav" id="prevBtn" aria-label="Previous month">&#8249;</button>
+      <span class="label" id="monthLabel"></span>
+      <button class="btn-nav" id="nextBtn" aria-label="Next month">&#8250;</button>
+    </div>
+    <button class="btn btn-line" id="todayBtn">Today</button>
+    <span class="spacer"></span>
+    <button class="btn btn-line" id="refreshBtn">Refresh</button>
+    <button class="btn btn-line" id="exportBtn">Download CSV</button>
+    <button class="btn btn-accent" id="addBtn">+ New booking</button>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-scroll" id="chart"></div>
+  </div>
+  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule from any device, and updates from others appear within a minute (or click Refresh). Download a CSV backup now and then.</p>
+</div>
+
+<!-- Booking modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle">New booking</h2>
+    <div class="field">
+      <label for="fGuest">Guest name</label>
+      <input id="fGuest" type="text" autocomplete="off" placeholder="e.g. David">
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label for="fProp">Property</label>
+        <select id="fProp"></select>
+      </div>
+      <div class="field">
+        <label for="fRoom">Room</label>
+        <select id="fRoom"></select>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field">
+        <label for="fIn">Check-in</label>
+        <input id="fIn" type="date">
+      </div>
+      <div class="field">
+        <label for="fOut">Check-out</label>
+        <input id="fOut" type="date">
+      </div>
+    </div>
+    <div class="nights" id="nightsLabel"></div>
+    <p class="err" id="modalErr"></p>
+    <div class="modal-actions">
+      <button class="btn btn-accent" id="saveBtn">Save booking</button>
+      <button class="btn btn-line" id="cancelBtn">Cancel</button>
+      <span class="spacer"></span>
+      <button class="btn btn-danger hidden" id="deleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROPERTIES = {
+  'Bottlebrush': ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room A', 'Room B', 'Room C'],
+  'Greenhaven':  ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5', 'Room A', 'Room B', 'Room C'],
+  'Kirby':       ['Room 3', 'Room 4', 'Room 5']
+};
+const PROP_NAMES = Object.keys(PROPERTIES);
+const ALL_TAB = 'All Rooms';
+const TOTAL_ROOMS = PROP_NAMES.reduce((n, p) => n + PROPERTIES[p].length, 0);
+
+// Built-in bookings from the FlexStay Excel sheet (Book1.xlsx, read 2026-07-13).
+// checkOut is the departure day: the room is occupied through the night before.
+// The sheet ended at 3/10/2027, so stays running to that edge are set to depart
+// 3/11/2027 — extend them once real dates are known.
+const SEED = [
+  { id: 's1',  property: 'Bottlebrush', room: 'Room 1', guest: 'David', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's2',  property: 'Bottlebrush', room: 'Room 2', guest: 'Ryan',  checkIn: '2026-07-13', checkOut: '2026-07-29' },
+  { id: 's3',  property: 'Bottlebrush', room: 'Room 3', guest: 'Issac', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's4',  property: 'Bottlebrush', room: 'Room 4', guest: 'James', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's5',  property: 'Bottlebrush', room: 'Room 4', guest: 'James', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's6',  property: 'Bottlebrush', room: 'Room A', guest: 'Ethan', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's7',  property: 'Bottlebrush', room: 'Room B', guest: 'Lewis', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's8',  property: 'Bottlebrush', room: 'Room C', guest: 'Lance', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's9',  property: 'Bottlebrush', room: 'Room C', guest: 'Lance', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's10', property: 'Greenhaven',  room: 'Room 1', guest: 'David', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's11', property: 'Greenhaven',  room: 'Room 2', guest: 'Ryan',  checkIn: '2026-07-13', checkOut: '2026-07-29' },
+  { id: 's12', property: 'Greenhaven',  room: 'Room 3', guest: 'Issac', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's13', property: 'Greenhaven',  room: 'Room 4', guest: 'James', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's14', property: 'Greenhaven',  room: 'Room 4', guest: 'James', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's15', property: 'Greenhaven',  room: 'Room 5', guest: 'James', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's16', property: 'Greenhaven',  room: 'Room 5', guest: 'James', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's17', property: 'Greenhaven',  room: 'Room A', guest: 'Ethan', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's18', property: 'Greenhaven',  room: 'Room B', guest: 'Lewis', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's19', property: 'Greenhaven',  room: 'Room C', guest: 'Lance', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's20', property: 'Greenhaven',  room: 'Room C', guest: 'Lance', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's21', property: 'Kirby',       room: 'Room 3', guest: 'Issac', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's22', property: 'Kirby',       room: 'Room 4', guest: 'James', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's23', property: 'Kirby',       room: 'Room 4', guest: 'James', checkIn: '2026-11-17', checkOut: '2027-03-11' },
+  { id: 's24', property: 'Kirby',       room: 'Room 5', guest: 'James', checkIn: '2026-07-13', checkOut: '2026-08-07' },
+  { id: 's25', property: 'Kirby',       room: 'Room 5', guest: 'James', checkIn: '2026-11-17', checkOut: '2027-03-11' }
+];
+
+// Bookings live in a shared Cloudflare D1 database behind /api/flexstay-bookings,
+// so everyone with the link sees and edits the same schedule from any device.
+// If the shared database is still empty, the old per-browser localStorage copy
+// (or, failing that, the SEED above) is uploaded once as the starting data.
+const LEGACY_STORE_KEY = 'flexstay-room-bookings-v1';
+
+function initialSeedData() {
+  try {
+    const raw = localStorage.getItem(LEGACY_STORE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      if (Array.isArray(data) && data.length) return data;
+    }
+  } catch (e) { /* ignore */ }
+  return SEED.map(b => ({ ...b }));
+}
+
+const $ = (id) => document.getElementById(id);
+function fmt(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function parse(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function addDays(d, n) { const c = new Date(d); c.setDate(c.getDate() + n); return c; }
+function nightsBetween(a, b) { return Math.round((parse(b) - parse(a)) / 86400000); }
+function human(s) { return parse(s).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+let bookings = [];
+let editingId = null;
+// The calendar always shows every property together; there are no per-property
+// tabs to switch between.
+let activeProp = ALL_TAB;
+// "Today" follows the viewer's own device timezone and clock.
+const now = new Date();
+const todayStr = fmt(now);
+let view = { y: now.getFullYear(), m: now.getMonth() };
+
+function showBanner(msg) { const b = $('errBanner'); b.textContent = msg; b.classList.remove('hidden'); }
+function hideBanner() { $('errBanner').classList.add('hidden'); }
+
+async function apiGet() {
+  const r = await fetch('api/flexstay-bookings', { cache: 'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return (await r.json()).bookings || [];
+}
+async function apiPost(body) {
+  const r = await fetch('api/flexstay-bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(data.error || ('HTTP ' + r.status)); e.status = r.status; e.conflict = data.conflict; throw e; }
+  return data.bookings || [];
+}
+
+async function loadFromServer() {
+  try {
+    let list = await apiGet();
+    if (list.length === 0) {
+      // Shared database is empty — upload this browser's data (or the Excel
+      // seed) once as the shared starting point.
+      list = await apiPost({ action: 'seed', bookings: initialSeedData() });
+    }
+    bookings = list;
+    hideBanner();
+  } catch (e) {
+    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection and click Refresh.');
+  }
+  render();
+}
+
+function conflict(property, room, cin, cout, ignoreId) {
+  return bookings.find(b => b.property === property && b.room === room && b.id !== ignoreId &&
+    cin < b.checkOut && cout > b.checkIn) || null;
+}
+
+function render() {
+  renderTabs();
+  renderChips();
+  renderChart();
+}
+
+function renderTabs() {
+  const tabs = $('propTabs');
+  tabs.innerHTML = '';
+  // Only the combined "All Rooms" summary -- kept for the occupancy count.
+  const occ = bookings.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut).length;
+  const t = document.createElement('div');
+  t.className = 'prop-tab active';
+  t.innerHTML = esc(ALL_TAB) + '<span class="n">' + occ + '/' + TOTAL_ROOMS + ' tonight</span>';
+  tabs.appendChild(t);
+}
+
+function renderChips() {
+  const all = activeProp === ALL_TAB;
+  const roomCount = all ? TOTAL_ROOMS : PROPERTIES[activeProp].length;
+  const inHouse = bookings.filter(b => (all || b.property === activeProp) && b.checkIn <= todayStr && todayStr < b.checkOut)
+    .sort((a, b) => (PROP_NAMES.indexOf(a.property) - PROP_NAMES.indexOf(b.property)) ||
+      (PROPERTIES[a.property].indexOf(a.room) - PROPERTIES[b.property].indexOf(b.room)));
+  const arrivals = bookings.filter(b => (all || b.property === activeProp) && b.checkIn === todayStr).length;
+  const departures = bookings.filter(b => (all || b.property === activeProp) && b.checkOut === todayStr).length;
+  const chips = $('chips');
+  chips.innerHTML = '';
+
+  const stat = document.createElement('span');
+  stat.className = 'chip';
+  stat.innerHTML = esc(all ? 'All properties' : activeProp) + ' tonight: <strong>' + inHouse.length + ' of ' + roomCount + '</strong>&nbsp;rooms occupied · ' +
+    arrivals + ' arrival' + (arrivals === 1 ? '' : 's') + ' · ' + departures + ' departure' + (departures === 1 ? '' : 's');
+  chips.appendChild(stat);
+
+  for (const b of inHouse) {
+    const c = document.createElement('span');
+    c.className = 'chip';
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    c.appendChild(dot);
+    c.appendChild(document.createTextNode((all ? b.property + ' ' : '') + b.room + ': ' + b.guest + ' (until ' +
+      parse(b.checkOut).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ')'));
+    chips.appendChild(c);
+  }
+}
+
+// The tape chart always shows 2.5 months: the two whole months from the one in
+// view, then the first half of the next. A narrow screen scrolls the chart
+// sideways rather than showing a shorter range.
+const rangeMonths = 2.5;
+
+// Day columns stretch to fill the chart's width so the whole range fits on
+// screen. MIN_CELL is the narrowest column a two-digit date stays legible in;
+// below that the chart scrolls sideways rather than shrinking further.
+const MIN_CELL = 14, MAX_CELL = 80;
+
+function sizeChart(dayCount) {
+  const host = $('chart');
+  const avail = (host.clientWidth || document.documentElement.clientWidth) - 2;
+  const labelW = avail < 640 ? 84 : (dayCount > 40 ? 100 : 118);
+  const raw = (avail - labelW) / dayCount;
+  const cell = Math.round(Math.max(MIN_CELL, Math.min(MAX_CELL, raw)) * 100) / 100;
+  host.classList.toggle('dense', cell < 17);
+  const st = host.style;
+  st.setProperty('--cell-w', cell + 'px');
+  st.setProperty('--day-font', cell >= 30 ? '.85rem' : cell >= 25 ? '.78rem' : cell >= 21 ? '.72rem' : cell >= 17 ? '.66rem' : '.6rem');
+  st.setProperty('--dow-font', cell >= 26 ? '.62rem' : cell >= 21 ? '.56rem' : '.5rem');
+  st.setProperty('--bar-font', cell >= 30 ? '.84rem' : cell >= 24 ? '.78rem' : cell >= 17 ? '.73rem' : '.68rem');
+  st.setProperty('--bar-pad', (cell >= 28 ? 10 : cell >= 20 ? 7 : 4) + 'px');
+  st.setProperty('--today-dot', Math.max(12, Math.min(22, cell - 4)) + 'px');
+  return { labelW: labelW, cell: cell };
+}
+
+function rangeLabel(days) {
+  const first = days[0], last = days[days.length - 1];
+  if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
+    return first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+  // A range that stops part-way through its last month says so.
+  const lastOfMonth = new Date(last.getFullYear(), last.getMonth() + 1, 0).getDate();
+  const partial = last.getDate() < lastOfMonth;
+  const sameYear = first.getFullYear() === last.getFullYear();
+  const startOpts = sameYear ? { month: 'short' } : { month: 'short', year: 'numeric' };
+  return first.toLocaleDateString(undefined, startOpts) + ' \u2013 ' + (partial ? 'mid-' : '') +
+    last.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+
+function renderChart() {
+  const { y, m } = view;
+  const all = activeProp === ALL_TAB;
+  const groups = all
+    ? PROP_NAMES.map(p => ({ prop: p, rooms: PROPERTIES[p] }))
+    : [{ prop: activeProp, rooms: PROPERTIES[activeProp] }];
+
+  // One entry per visible day; everything below is positioned by index into
+  // this array, so the view can span any number of months.
+  // A fractional range (2.5) runs the whole months, then that share of the
+  // next one -- half of November, say.
+  const wholeMonths = Math.floor(rangeMonths), partMonth = rangeMonths - wholeMonths;
+  let rangeEndExcl = new Date(y, m + wholeMonths, 1);
+  if (partMonth > 0) {
+    rangeEndExcl = addDays(rangeEndExcl, Math.round(new Date(y, m + wholeMonths + 1, 0).getDate() * partMonth));
+  }
+  const days = [];
+  for (let d = new Date(y, m, 1); d < rangeEndExcl; d = addDays(d, 1)) days.push(d);
+  const dayStr = days.map(fmt);
+  const idxOf = {};
+  dayStr.forEach((ds, i) => { idxOf[ds] = i; });
+  const firstStr = dayStr[0], lastStr = dayStr[dayStr.length - 1], endExclStr = fmt(rangeEndExcl);
+  const isMonthStart = (date, i) => i > 0 && date.getDate() === 1;
+
+  const size = sizeChart(days.length);
+  const cols = size.labelW + 'px repeat(' + days.length + ', ' + size.cell + 'px)';
+
+  $('monthLabel').textContent = rangeLabel(days);
+
+  const chart = $('chart');
+  chart.innerHTML = '';
+
+  // Month names, only worth a row when more than one month is on screen.
+  if (days[0].getMonth() !== days[days.length - 1].getMonth()) {
+    const band = document.createElement('div');
+    band.className = 'grid-row month-band';
+    band.style.gridTemplateColumns = cols;
+    const bcorner = document.createElement('div');
+    bcorner.className = 'room-cell';
+    band.appendChild(bcorner);
+    let i = 0;
+    while (i < days.length) {
+      let j = i;
+      while (j + 1 < days.length && days[j + 1].getMonth() === days[i].getMonth()) j++;
+      const lab = document.createElement('div');
+      lab.className = 'mlabel' + (i > 0 ? ' month-start' : '');
+      lab.style.gridColumn = (i + 2) + ' / span ' + (j - i + 1);
+      lab.textContent = days[i].toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      band.appendChild(lab);
+      i = j + 1;
+    }
+    chart.appendChild(band);
+  }
+
+  const head = document.createElement('div');
+  head.className = 'grid-row head';
+  head.style.gridTemplateColumns = cols;
+  const corner = document.createElement('div');
+  corner.className = 'room-cell';
+  corner.textContent = all ? 'All Rooms' : activeProp;
+  head.appendChild(corner);
+  days.forEach((date, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'day-head' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') +
+      (dayStr[i] === todayStr ? ' today' : '') + (isMonthStart(date, i) ? ' month-start' : '');
+    cell.style.gridColumn = String(i + 2);
+    cell.innerHTML = '<span class="dow">' + date.toLocaleDateString(undefined, { weekday: 'narrow' }) +
+      '</span><span class="num">' + date.getDate() + '</span>';
+    head.appendChild(cell);
+  });
+  chart.appendChild(head);
+
+  for (const g of groups) {
+    if (all) {
+      const prow = document.createElement('div');
+      prow.className = 'grid-row prop-row';
+      prow.style.gridTemplateColumns = cols;
+      const plabel = document.createElement('div');
+      plabel.className = 'room-cell';
+      plabel.textContent = g.prop;
+      prow.appendChild(plabel);
+      days.forEach((date, i) => {
+        const fill = document.createElement('div');
+        fill.className = 'day-fill' + (isMonthStart(date, i) ? ' month-start' : '');
+        fill.style.gridColumn = String(i + 2);
+        prow.appendChild(fill);
+      });
+      chart.appendChild(prow);
+    }
+
+    for (const room of g.rooms) {
+      const row = document.createElement('div');
+      row.className = 'grid-row body-row';
+      row.style.gridTemplateColumns = cols;
+
+      const label = document.createElement('div');
+      label.className = 'room-cell';
+      label.textContent = room;
+      row.appendChild(label);
+
+      days.forEach((date, i) => {
+        const ds = dayStr[i];
+        const cell = document.createElement('div');
+        cell.className = 'day-cell' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') +
+          (ds === todayStr ? ' todaycol' : '') + (isMonthStart(date, i) ? ' month-start' : '');
+        cell.style.gridColumn = String(i + 2);
+        cell.title = g.prop + ' ' + room + ' \u00b7 ' + human(ds);
+        cell.addEventListener('click', () => openModal(null, { property: g.prop, room, checkIn: ds }));
+        row.appendChild(cell);
+      });
+
+      for (const b of bookings.filter(b => b.property === g.prop && b.room === room &&
+          b.checkIn < endExclStr && b.checkOut > firstStr)) {
+        const cutLeft = b.checkIn < firstStr, cutRight = b.checkOut > endExclStr;
+        const lastNight = fmt(addDays(parse(b.checkOut), -1));
+        const si = cutLeft ? 0 : (idxOf[b.checkIn] !== undefined ? idxOf[b.checkIn] : 0);
+        const ei = lastNight > lastStr ? days.length - 1
+          : (idxOf[lastNight] !== undefined ? idxOf[lastNight] : days.length - 1);
+        if (ei < si) continue;
+        const bar = document.createElement('button');
+        bar.className = 'bar' + (cutLeft ? ' cut-left' : '') + (cutRight ? ' cut-right' : '');
+        bar.style.gridColumn = (si + 2) + ' / span ' + (ei - si + 1);
+        const n = nightsBetween(b.checkIn, b.checkOut);
+        bar.title = b.guest + ' \u00b7 ' + human(b.checkIn) + ' \u2192 ' + human(b.checkOut) +
+          ' \u00b7 ' + n + ' night' + (n === 1 ? '' : 's');
+        bar.innerHTML = (cutLeft ? '<span class="cont">&#8249;</span>' : '') +
+          '<span>' + esc(b.guest) + '</span>' +
+          (cutRight ? '<span class="cont">&#8250;</span>' : '');
+        bar.addEventListener('click', (e) => { e.stopPropagation(); openModal(b.id); });
+        row.appendChild(bar);
+      }
+      chart.appendChild(row);
+    }
+  }
+}
+
+// ---- modal ----
+const overlay = $('overlay');
+for (const p of PROP_NAMES) {
+  const o = document.createElement('option');
+  o.value = p; o.textContent = p;
+  $('fProp').appendChild(o);
+}
+function fillRooms(property, selected) {
+  const sel = $('fRoom');
+  sel.innerHTML = '';
+  for (const r of PROPERTIES[property]) {
+    const o = document.createElement('option');
+    o.value = r; o.textContent = r;
+    sel.appendChild(o);
+  }
+  if (selected && PROPERTIES[property].includes(selected)) sel.value = selected;
+}
+$('fProp').addEventListener('change', () => fillRooms($('fProp').value));
+
+function openModal(id, prefill) {
+  editingId = id;
+  $('modalErr').textContent = '';
+  $('deleteBtn').textContent = 'Delete';
+  if (id) {
+    const b = bookings.find(x => x.id === id);
+    $('modalTitle').textContent = 'Edit booking — ' + b.guest;
+    $('fGuest').value = b.guest;
+    $('fProp').value = b.property;
+    fillRooms(b.property, b.room);
+    $('fIn').value = b.checkIn; $('fOut').value = b.checkOut;
+    $('deleteBtn').classList.remove('hidden');
+  } else {
+    $('modalTitle').textContent = 'New booking';
+    $('fGuest').value = '';
+    // activeProp is the combined "All Rooms" view, which is not a real
+    // property -- fall back to the first one so the room list can populate.
+    const fallback = PROPERTIES[activeProp] ? activeProp : PROP_NAMES[0];
+    const p = (prefill && prefill.property) || fallback;
+    $('fProp').value = p;
+    fillRooms(p, prefill && prefill.room);
+    $('fIn').value = (prefill && prefill.checkIn) || todayStr;
+    $('fOut').value = fmt(addDays(parse($('fIn').value), 1));
+    $('deleteBtn').classList.add('hidden');
+  }
+  updateNights();
+  overlay.classList.add('open');
+  $('fGuest').focus();
+}
+function closeModal() { overlay.classList.remove('open'); editingId = null; }
+
+function updateNights() {
+  const cin = $('fIn').value, cout = $('fOut').value;
+  if (cin && cout) {
+    const n = nightsBetween(cin, cout);
+    $('nightsLabel').textContent = n > 0 ? n + ' night' + (n === 1 ? '' : 's') : '';
+  } else $('nightsLabel').textContent = '';
+}
+$('fIn').addEventListener('change', updateNights);
+$('fOut').addEventListener('change', updateNights);
+
+$('saveBtn').addEventListener('click', async () => {
+  const guest = $('fGuest').value.trim();
+  const property = $('fProp').value, room = $('fRoom').value;
+  const cin = $('fIn').value, cout = $('fOut').value;
+  const fail = (msg) => { $('modalErr').textContent = msg; };
+  if (!guest) return fail("Enter the guest's name.");
+  if (!room) return fail('Pick a room.');
+  if (!cin || !cout) return fail('Pick both a check-in and a check-out date.');
+  if (cout <= cin) return fail('Check-out must be after check-in.');
+  const clash = conflict(property, room, cin, cout, editingId);
+  if (clash) return fail(property + ' ' + room + ' is already booked by ' + clash.guest + ' from ' +
+    human(clash.checkIn) + ' to ' + human(clash.checkOut) + '. Choose another room or different dates.');
+
+  const btn = $('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    bookings = await apiPost({ action: 'upsert', booking: { id: editingId || undefined, guest, property, room, checkIn: cin, checkOut: cout } });
+    closeModal();
+    if (activeProp !== ALL_TAB) activeProp = property;
+    render();
+  } catch (e) {
+    if (e.status === 409 && e.conflict) {
+      fail(property + ' ' + room + ' was just booked by ' + e.conflict.guest + ' from ' + human(e.conflict.checkIn) + ' to ' +
+        human(e.conflict.checkOut) + ' (someone else saved it first). Choose another room or different dates.');
+      loadFromServer();
+    } else {
+      fail('Could not save — check your internet connection and try again.');
+    }
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save booking';
+  }
+});
+
+$('deleteBtn').addEventListener('click', async () => {
+  const btn = $('deleteBtn');
+  if (btn.textContent !== 'Confirm delete?') { btn.textContent = 'Confirm delete?'; return; }
+  btn.disabled = true;
+  try {
+    bookings = await apiPost({ action: 'delete', id: editingId });
+    closeModal(); render();
+  } catch (e) {
+    $('modalErr').textContent = 'Could not delete — check your internet connection and try again.';
+    btn.textContent = 'Delete';
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('cancelBtn').addEventListener('click', closeModal);
+overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal(); });
+
+// ---- toolbar ----
+$('prevBtn').addEventListener('click', () => { view.m--; if (view.m < 0) { view.m = 11; view.y--; } renderChart(); });
+$('nextBtn').addEventListener('click', () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderChart(); });
+$('todayBtn').addEventListener('click', () => { view = { y: now.getFullYear(), m: now.getMonth() }; renderChart(); });
+$('addBtn').addEventListener('click', () => openModal(null));
+$('refreshBtn').addEventListener('click', loadFromServer);
+
+// Column width is derived from the window, so lay the chart out again when it changes.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderChart, 150);
+});
+
+// CSV in the same layout as the original Excel: three property blocks side by
+// side separated by a blank column, with a property row above the room row.
+$('exportBtn').addEventListener('click', () => {
+  if (!bookings.length) return;
+  let min = bookings[0].checkIn, max = bookings[0].checkOut;
+  for (const b of bookings) { if (b.checkIn < min) min = b.checkIn; if (b.checkOut > max) max = b.checkOut; }
+  const propRow = [''], roomRow = ['Date'];
+  for (const p of PROP_NAMES) {
+    PROPERTIES[p].forEach((r, i) => { propRow.push(i === 0 ? p : ''); roomRow.push(r); });
+    if (p !== PROP_NAMES[PROP_NAMES.length - 1]) { propRow.push(''); roomRow.push(''); }
+  }
+  const rows = [propRow.join(','), roomRow.join(',')];
+  for (let d = parse(min); fmt(d) < max; d = addDays(d, 1)) {
+    const ds = fmt(d);
+    const cells = [(d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear()];
+    for (const p of PROP_NAMES) {
+      for (const r of PROPERTIES[p]) {
+        const b = bookings.find(x => x.property === p && x.room === r && x.checkIn <= ds && ds < x.checkOut);
+        cells.push(b ? '"' + b.guest.replace(/"/g, '""') + '"' : '');
+      }
+      if (p !== PROP_NAMES[PROP_NAMES.length - 1]) cells.push('');
+    }
+    rows.push(cells.join(','));
+  }
+  const blob = new Blob([rows.join('\r\n')], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'flexstay-bookings.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+$('todayLabel').textContent = 'Today: ' + now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+render();
+loadFromServer();
+// Pick up other people's changes automatically while the page is open.
+setInterval(() => { if (!overlay.classList.contains('open')) loadFromServer(); }, 60000);
+</script>
+</body>
+</html>

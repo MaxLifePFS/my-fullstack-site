@@ -1,0 +1,15 @@
+/node_modules
+/.next
+/out
+/.open-next
+/.wrangler
+.env
+.env*.local
+.dev.vars
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+cloudflare-env.d.ts
+
+# Local Netlify folder
+.netlify

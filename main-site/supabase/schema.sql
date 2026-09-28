@@ -1,0 +1,7 @@
+-- ⬇️ LIVE-BUILD 步骤 1:在 Supabase 建一张 leads 表存留资。
+-- 课上跟着做;完成版(建表 SQL + RLS)见 final 分支 / 实操手册步骤 1。
+--
+-- TODO 步骤 1:
+--   create table public.leads ( id uuid primary key default gen_random_uuid(),
+--     name text, email text not null, created_at timestamptz default now() );
+--   alter table public.leads enable row level security;

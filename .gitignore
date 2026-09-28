@@ -4,3 +4,9 @@
 **/.dev.vars
 Thumbs.db
 .DS_Store
+
+# This repo is public - real env values must never land in it. main-site has
+# its own .gitignore too; this is the backstop for the whole tree.
+**/.env
+**/.env.*
+!**/.env.example
