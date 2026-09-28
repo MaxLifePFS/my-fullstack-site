@@ -84,7 +84,7 @@
   .chart-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
   /* Column width and type scale are recomputed on every render from the
      available width (see sizeChart), so 1-2 months fit without scrolling. */
-  .chart-scroll { overflow-x: auto; --cell-w: 38px; --day-font: .85rem; --dow-font: .62rem; --bar-font: .84rem; --bar-pad: 10px; --today-dot: 22px; }
+  .chart-scroll { overflow-x: auto; --cell-w: 38px; --day-font: .85rem; --dow-font: .62rem; --bar-font: 1rem; --bar-pad: 10px; --today-dot: 22px; }
   /* min-width so each row spans its full track width: a row box clipped to the
      container width would paint its dark band short on long months. */
   .grid-row { display: grid; min-width: max-content; }
@@ -424,7 +424,7 @@ function sizeChart(dayCount) {
   st.setProperty('--cell-w', cell + 'px');
   st.setProperty('--day-font', cell >= 30 ? '.85rem' : cell >= 25 ? '.78rem' : cell >= 21 ? '.72rem' : cell >= 17 ? '.66rem' : '.6rem');
   st.setProperty('--dow-font', cell >= 26 ? '.62rem' : cell >= 21 ? '.56rem' : '.5rem');
-  st.setProperty('--bar-font', cell >= 30 ? '.84rem' : cell >= 24 ? '.78rem' : cell >= 17 ? '.73rem' : '.68rem');
+  st.setProperty('--bar-font', cell >= 30 ? '1rem' : cell >= 24 ? '.92rem' : cell >= 17 ? '.86rem' : '.78rem');
   st.setProperty('--bar-pad', (cell >= 28 ? 10 : cell >= 20 ? 7 : 4) + 'px');
   st.setProperty('--today-dot', Math.max(12, Math.min(22, cell - 4)) + 'px');
   return { labelW: labelW, cell: cell };
