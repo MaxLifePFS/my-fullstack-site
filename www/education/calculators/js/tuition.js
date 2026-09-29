@@ -17,15 +17,22 @@
  * either type — that is the lever the page is built around.
  */
 
+/* Every user-facing string goes through t(). The page re-renders on
+   "langchange", so JS-built prose switches with the rest of the page. */
+const t = (en, zh) => (document.documentElement.dataset.lang === "zh" ? zh : en);
+
 const BASE_ROWS = ["bank", "stock", "prop", "c529"];
 const NEVER_ROWS = ["ins", "ret"];
 
-const CTYPE_NOTE = {
-  public: "Public schools generally run the federal FAFSA formula on its own: the home, the " +
-    "business and the farm stay out of the calculation entirely.",
-  private: "Many private schools add the CSS Profile, which reaches further — primary-residence " +
-    "equity counts (up to the cap set in Step 4), and business and farm assets count at net worth.",
-};
+const ctypeNote = () => ({
+  public: t("Public schools generally run the federal FAFSA formula on its own: the home, the "
+          + "business and the farm stay out of the calculation entirely.",
+            "公立学校通常只采用联邦 FAFSA 公式：自住房、企业与农场完全不进入计算。"),
+  private: t("Many private schools add the CSS Profile, which reaches further — primary-residence "
+           + "equity counts (up to the cap set in Step 4), and business and farm assets count at net worth.",
+             "许多私立学校会加用 CSS Profile，口径更宽 —— 自住房净值要计入（以第四步设定的上限为限），"
+           + "企业与农场则按净值计入。"),
+});
 
 /* Read a $ field, treating blank/invalid as zero */
 const money = (id) => numInput(id, 0, 0, 1e12);
@@ -123,18 +130,24 @@ function renderWorked(m) {
       const bits = [];
       if (o.homeCounted > 0) {
         bits.push(o.home > m.homeCap
-          ? `home equity ${fmtCurrency(o.home)} <b>capped at ${fmtCurrency(m.homeCap)}</b>`
-          : `home equity ${fmtCurrency(o.home)}`);
+          ? t(`home equity ${fmtCurrency(o.home)} <b>capped at ${fmtCurrency(m.homeCap)}</b>`,
+              `自住房净值 ${fmtCurrency(o.home)}，<b>上限 ${fmtCurrency(m.homeCap)}</b>`)
+          : t(`home equity ${fmtCurrency(o.home)}`, `自住房净值 ${fmtCurrency(o.home)}`));
       }
-      if (o.bizFarmNet > 0) bits.push(`business and farm net worth ${fmtCurrency(o.bizFarmNet)}`);
+      if (o.bizFarmNet > 0) bits.push(t(`business and farm net worth ${fmtCurrency(o.bizFarmNet)}`,
+                                        `企业与农场净值 ${fmtCurrency(o.bizFarmNet)}`));
       if (!bits.length) return "";
-      return `<li>${who}: ${fmtCurrency(o.base)} of college assets plus ${bits.join(" and ")}
-        = <b>${fmtCurrency(o.college)}</b></li>`;
+      return t(`<li>${who}: ${fmtCurrency(o.base)} of college assets plus ${bits.join(" and ")}
+        = <b>${fmtCurrency(o.college)}</b></li>`,
+        `<li>${who}：计入资产 ${fmtCurrency(o.base)}，加上 ${bits.join("、")}
+        = <b>${fmtCurrency(o.college)}</b></li>`);
     };
-    const items = line("Parent", m.parent) + line("Student", m.student);
+    const items = line(t("Parent", "家长"), m.parent) + line(t("Student", "学生"), m.student);
     if (items) {
-      build = `<p>At a private school the home, business and farm join the counted pool:</p>
-        <ul>${items}</ul>`;
+      build = t(`<p>At a private school the home, business and farm join the counted pool:</p>
+        <ul>${items}</ul>`,
+        `<p>在私立学校，自住房、企业与农场都会进入计入池：</p>
+        <ul>${items}</ul>`);
     }
   }
 
@@ -146,35 +159,43 @@ function renderWorked(m) {
         ${row("A", m.parent.college, m.rate.pa, m.term.A)}
         ${row("i", m.student.agi, m.rate.si, m.term.i)}
         ${row("a", m.student.college, m.rate.sa, m.term.a)}
-        <tr><td colspan="3"><b>Expected family contribution</b></td>
+        <tr><td colspan="3"><b>${t("Expected family contribution", "家庭预期供款")}</b></td>
             <td style="text-align:right"><b>${fmtCurrency(m.efc)}</b></td></tr>
       </tbody>
     </table>
-    <p>Cost of attendance ${fmtCurrency(m.coa)} − your share ${fmtCurrency(m.efc)} =
+    ${t(`<p>Cost of attendance ${fmtCurrency(m.coa)} − your share ${fmtCurrency(m.efc)} =
       <b>${fmtCurrency(m.aid)}</b> of need-based aid.
       ${noAid
-        ? `Your share already covers the full cost, so this year generates no need-based award.`
+        ? "Your share already covers the full cost, so this year generates no need-based award."
         : `The school is being asked to cover ${m.covered.toFixed(0)}% of the bill.`}</p>
     <p>Of the ${fmtCurrency(m.efc)}, the parent side accounts for ${fmtCurrency(m.parentShare)}
-      and the student side ${fmtCurrency(m.studentShare)}.</p>`;
+      and the student side ${fmtCurrency(m.studentShare)}.</p>`,
+      `<p>就读总成本 ${fmtCurrency(m.coa)} − 您的份额 ${fmtCurrency(m.efc)} =
+      需求型助学金 <b>${fmtCurrency(m.aid)}</b>。
+      ${noAid
+        ? "您的份额已覆盖全部成本，因此当年不产生需求型助学金。"
+        : `学校需要承担账单的 ${m.covered.toFixed(0)}%。`}</p>
+    <p>在这 ${fmtCurrency(m.efc)} 当中，家长方为 ${fmtCurrency(m.parentShare)}，
+      学生方为 ${fmtCurrency(m.studentShare)}。</p>`)}`;
 }
 
 function renderLever(m) {
   const per1k = (r) => fmtCurrency(1000 * r);
   const rows = [
-    ["Parent college asset", "A", m.rate.pa],
-    ["Student college asset", "a", m.rate.sa],
-    ["Parent income", "I", m.rate.pi],
-    ["Student income", "i", m.rate.si],
+    [t("Parent college asset", "家长计入资产"), "A", m.rate.pa],
+    [t("Student college asset", "学生计入资产"), "a", m.rate.sa],
+    [t("Parent income", "家长收入"), "I", m.rate.pi],
+    [t("Student income", "学生收入"), "i", m.rate.si],
   ].sort((x, y) => x[2] - y[2]);
 
   return `<tbody>
-      <tr><td colspan="2"><b>Each $1,000 assessed here…</b></td>
-          <td style="text-align:right"><b>adds to your share</b></td></tr>
+      <tr><td colspan="2"><b>${t("Each $1,000 assessed here…", "此处每计入 $1,000…")}</b></td>
+          <td style="text-align:right"><b>${t("adds to your share", "使您的份额增加")}</b></td></tr>
       ${rows.map(([name, sym, r]) =>
         `<tr><td>${name}</td><td><i>${sym}</i> × ${pct(r)}</td>
              <td style="text-align:right">${per1k(r)}</td></tr>`).join("")}
-      <tr><td>Life insurance cash value or retirement savings</td><td>never in the equation</td>
+      <tr><td>${t("Life insurance cash value or retirement savings", "人寿保险现金价值或退休储蓄")}</td>
+          <td>${t("never in the equation", "从不进入公式")}</td>
           <td style="text-align:right"><b>${fmtCurrency(0)}</b></td></tr>
     </tbody>`;
 }
@@ -184,18 +205,19 @@ const setText = (id, s) => { document.getElementById(id).textContent = s; };
 function render() {
   const m = readModel();
 
-  setText("ctype-note", CTYPE_NOTE[m.ctype]);
+  setText("ctype-note", ctypeNote()[m.ctype]);
 
   /* the group heading and the conditional subtotal both depend on school type */
   setText("cond-hint", m.isPrivate
-    ? "— counted at a private school"
-    : "— not counted at a public school");
+    ? t("— counted at a private school", "—— 私立学校计入")
+    : t("— not counted at a public school", "—— 公立学校不计入"));
   setText("cond-sub-label", m.isPrivate
-    ? "Added to the college pool"
-    : "Not counted at a public school");
+    ? t("Added to the college pool", "计入资产池")
+    : t("Not counted at a public school", "公立学校不计入"));
   setText("home-cap-label", m.isPrivate
-    ? `counted after the ${m.capMult}× cap (${fmtCurrency(m.homeCap)})`
-    : "not counted");
+    ? t(`counted after the ${m.capMult}× cap (${fmtCurrency(m.homeCap)})`,
+        `按 ${m.capMult}× 上限计入后（${fmtCurrency(m.homeCap)}）`)
+    : t("not counted", "不计入"));
 
   for (const [who, o] of [["p", m.parent], ["s", m.student]]) {
     setText(`${who}-base-sub`, fmtCurrency(o.base));
@@ -213,14 +235,18 @@ function render() {
   setText("eq-rsa", pct(m.rate.sa));
 
   document.getElementById("result-tiles").innerHTML = [
-    tile("Your share (EFC)", fmtCurrency(m.efc), "what you are expected to pay", "hero"),
-    tile("Financial aid", fmtCurrency(m.aid),
-      m.aid > 0 ? `${m.covered.toFixed(0)}% of the cost of attendance`
-                : "your share covers the full cost"),
-    tile("From the parent side", fmtCurrency(m.parentShare),
-      `income ${fmtCompact(m.term.I)} · assets ${fmtCompact(m.term.A)}`),
-    tile("From the student side", fmtCurrency(m.studentShare),
-      `income ${fmtCompact(m.term.i)} · assets ${fmtCompact(m.term.a)}`),
+    tile(t("Your share (EFC)", "您的份额（家庭预期供款）"), fmtCurrency(m.efc),
+      t("what you are expected to pay", "学校预期由您支付的金额"), "hero"),
+    tile(t("Financial aid", "需求型助学金"), fmtCurrency(m.aid),
+      m.aid > 0 ? t(`${m.covered.toFixed(0)}% of the cost of attendance`,
+                    `占就读总成本的 ${m.covered.toFixed(0)}%`)
+                : t("your share covers the full cost", "您的份额已覆盖全部成本")),
+    tile(t("From the parent side", "家长方"), fmtCurrency(m.parentShare),
+      t(`income ${fmtCompact(m.term.I)} · assets ${fmtCompact(m.term.A)}`,
+        `收入 ${fmtCompact(m.term.I)} · 资产 ${fmtCompact(m.term.A)}`)),
+    tile(t("From the student side", "学生方"), fmtCurrency(m.studentShare),
+      t(`income ${fmtCompact(m.term.i)} · assets ${fmtCompact(m.term.a)}`,
+        `收入 ${fmtCompact(m.term.i)} · 资产 ${fmtCompact(m.term.a)}`)),
   ].join("");
 
   document.getElementById("worked").innerHTML = renderWorked(m);
@@ -233,3 +259,4 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   render();
 });
+document.addEventListener("langchange", render);

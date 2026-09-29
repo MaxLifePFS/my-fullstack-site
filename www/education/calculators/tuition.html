@@ -122,69 +122,69 @@
 <body>
   <div class="wrap">
     <header class="site-header">
-      <h1><a href="index.html">College Tuition Reduction</a></h1>
+      <h1><a href="index.html"><span class="en">College Tuition Reduction</span><span class="zh">大学学费优化</span></a></h1>
       <div class="header-right">
-        <span class="crumb"><a href="index.html">Home</a> / Tuition Reduction</span>
-        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark">Theme</button>
+        <span class="crumb"><a href="index.html"><span class="en">Home</span><span class="zh">首页</span></a> / <span class="en">Tuition Reduction</span><span class="zh">学费优化</span></span>
+        <button class="lang-toggle" id="lang-toggle" type="button">中文</button>
+        <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark"><span class="en">Theme</span><span class="zh">主题</span></button>
       </div>
     </header>
 
     <section class="panel">
-      <h2>Step 1 — what kind of school</h2>
+      <h2><span class="en">Step 1 — what kind of school</span><span class="zh">第一步 —— 学校类型</span></h2>
       <div class="seg" role="radiogroup" aria-label="College type">
-        <label><input type="radio" name="ctype" value="public" checked><span>Public</span></label>
-        <label><input type="radio" name="ctype" value="private"><span>Private</span></label>
+        <label><input type="radio" name="ctype" value="public" checked><span><span class="en">Public</span><span class="zh">公立</span></span></label>
+        <label><input type="radio" name="ctype" value="private"><span><span class="en">Private</span><span class="zh">私立</span></span></label>
       </div>
       <p class="note" id="ctype-note"></p>
     </section>
 
     <section class="panel">
-      <h2>Step 2 — what the school costs</h2>
+      <h2><span class="en">Step 2 — what the school costs</span><span class="zh">第二步 —— 就读总成本</span></h2>
       <div class="field coa-field">
-        <label for="coa">Cost of attendance ($ / year)</label>
+        <label for="coa"><span class="en">Cost of attendance ($ / year)</span><span class="zh">年度就读总成本（美元）</span></label>
         <input type="number" id="coa" value="80000" min="0" step="1000">
       </div>
-      <p class="note">Tuition, fees, room, board, books and travel — the school's full published
-        figure for one year, not tuition alone.</p>
+      <p class="note"><span class="en">Tuition, fees, room, board, books and travel — the school's full published figure for one year, not tuition alone.</span><span class="zh">学费、杂费、住宿、伙食、书本与交通 —— 学校公布的一年全部费用，不只是学费。</span></p>
     </section>
 
     <section class="panel">
-      <h2>Step 3 — income and assets, by owner</h2>
+      <h2><span class="en">Step 3 — income and assets, by owner</span><span class="zh">第三步 —— 按持有人填写收入与资产</span></h2>
       <div class="ps-grid">
-        <div class="ps-group">Income</div>
+        <div class="ps-group"><span class="en">Income</span><span class="zh">收入</span></div>
         <div></div>
-        <div class="ps-head">Parent</div>
-        <div class="ps-head">Student</div>
+        <div class="ps-head"><span class="en">Parent</span><span class="zh">家长</span></div>
+        <div class="ps-head"><span class="en">Student</span><span class="zh">学生</span></div>
 
-        <label class="ps-label" for="p-agi"><span class="sym">I&nbsp;/&nbsp;i</span>Adjusted Gross Income (AGI)</label>
+        <label class="ps-label" for="p-agi"><span class="sym">I&nbsp;/&nbsp;i</span><span class="en">Adjusted Gross Income (AGI)</span><span class="zh">调整后总收入 (AGI)</span></label>
         <input type="number" id="p-agi" value="150000" min="0" step="1000">
         <input type="number" id="s-agi" value="5000" min="0" step="500">
 
-        <div class="ps-group">College assets <span class="hint">— counted at every school</span></div>
+        <div class="ps-group"><span class="en">College assets</span><span class="zh">计入资产</span> <span class="hint"><span class="en">— counted at every school</span><span class="zh">—— 所有学校都计入</span></span></div>
 
-        <label class="ps-label" for="p-bank">Bank savings</label>
+        <label class="ps-label" for="p-bank"><span class="en">Bank savings</span><span class="zh">银行存款</span></label>
         <input type="number" id="p-bank" value="50000" min="0" step="1000">
         <input type="number" id="s-bank" value="10000" min="0" step="500">
 
-        <label class="ps-label" for="p-stock">Stock / mutual fund / securities</label>
+        <label class="ps-label" for="p-stock"><span class="en">Stock / mutual fund / securities</span><span class="zh">股票 / 共同基金 / 证券</span></label>
         <input type="number" id="p-stock" value="150000" min="0" step="1000">
         <input type="number" id="s-stock" value="5000" min="0" step="500">
 
-        <label class="ps-label" for="p-prop">Equity in rental properties</label>
+        <label class="ps-label" for="p-prop"><span class="en">Equity in rental properties</span><span class="zh">出租物业净值</span></label>
         <input type="number" id="p-prop" value="100000" min="0" step="1000">
         <input type="number" id="s-prop" value="0" min="0" step="500">
 
-        <label class="ps-label" for="p-c529">529 college savings</label>
+        <label class="ps-label" for="p-c529"><span class="en">529 college savings</span><span class="zh">529 大学储蓄</span></label>
         <input type="number" id="p-c529" value="60000" min="0" step="1000">
         <input type="number" id="s-c529" value="0" min="0" step="500">
 
-        <div class="ps-sub">Subtotal</div>
+        <div class="ps-sub"><span class="en">Subtotal</span><span class="zh">小计</span></div>
         <div class="ps-sub-val" id="p-base-sub">—</div>
         <div class="ps-sub-val" id="s-base-sub">—</div>
 
-        <div class="ps-group">Home, business and farm <span class="hint" id="cond-hint"></span></div>
+        <div class="ps-group"><span class="en">Home, business and farm</span><span class="zh">自住房、企业与农场</span> <span class="hint" id="cond-hint"></span></div>
 
-        <label class="ps-label" for="p-home">Equity in primary residence</label>
+        <label class="ps-label" for="p-home"><span class="en">Equity in primary residence</span><span class="zh">自住房净值</span></label>
         <input type="number" id="p-home" value="300000" min="0" step="1000">
         <input type="number" id="s-home" value="0" min="0" step="500">
 
@@ -192,23 +192,23 @@
         <div class="ps-derived-val" id="p-home-counted">—</div>
         <div class="ps-derived-val" id="s-home-counted">—</div>
 
-        <label class="ps-label" for="p-biz">Business assets — market value</label>
+        <label class="ps-label" for="p-biz"><span class="en">Business assets — market value</span><span class="zh">企业资产 —— 市值</span></label>
         <input type="number" id="p-biz" value="0" min="0" step="1000">
         <input type="number" id="s-biz" value="0" min="0" step="500">
 
-        <label class="ps-label sub-row" for="p-bizdebt">less business debt</label>
+        <label class="ps-label sub-row" for="p-bizdebt"><span class="en">less business debt</span><span class="zh">减：企业负债</span></label>
         <input type="number" id="p-bizdebt" value="0" min="0" step="1000">
         <input type="number" id="s-bizdebt" value="0" min="0" step="500">
 
-        <label class="ps-label" for="p-farm">Farm assets — market value</label>
+        <label class="ps-label" for="p-farm"><span class="en">Farm assets — market value</span><span class="zh">农场资产 —— 市值</span></label>
         <input type="number" id="p-farm" value="0" min="0" step="1000">
         <input type="number" id="s-farm" value="0" min="0" step="500">
 
-        <label class="ps-label sub-row" for="p-farmdebt">less farm debt</label>
+        <label class="ps-label sub-row" for="p-farmdebt"><span class="en">less farm debt</span><span class="zh">减：农场负债</span></label>
         <input type="number" id="p-farmdebt" value="0" min="0" step="1000">
         <input type="number" id="s-farmdebt" value="0" min="0" step="500">
 
-        <div class="ps-derived">business + farm net worth</div>
+        <div class="ps-derived"><span class="en">business + farm net worth</span><span class="zh">企业 + 农场净值</span></div>
         <div class="ps-derived-val" id="p-bizfarm-net">—</div>
         <div class="ps-derived-val" id="s-bizfarm-net">—</div>
 
@@ -216,7 +216,7 @@
         <div class="ps-sub-val" id="p-cond-sub">—</div>
         <div class="ps-sub-val" id="s-cond-sub">—</div>
 
-        <div class="ps-group">Never counted</div>
+        <div class="ps-group"><span class="en">Never counted</span><span class="zh">永不计入</span></div>
 
         <label class="ps-label" for="p-ins">Life insurance cash value</label>
         <input type="number" id="p-ins" value="80000" min="0" step="1000">
@@ -226,48 +226,46 @@
         <input type="number" id="p-ret" value="400000" min="0" step="1000">
         <input type="number" id="s-ret" value="0" min="0" step="500">
 
-        <div class="ps-sub">Not assessed — costs you nothing</div>
+        <div class="ps-sub"><span class="en">Not assessed — costs you nothing</span><span class="zh">不予计入 —— 完全不影响</span></div>
         <div class="ps-sub-val muted" id="p-shelter-sub">—</div>
         <div class="ps-sub-val muted" id="s-shelter-sub">—</div>
 
         <div class="ps-total"></div>
-        <div class="ps-sub"><span class="sym">A&nbsp;/&nbsp;a</span><b>Net college asset</b> — into the equation</div>
+        <div class="ps-sub"><span class="sym">A&nbsp;/&nbsp;a</span><b><span class="en">Net college asset</span><span class="zh">净计入资产</span></b> <span class="en">— into the equation</span><span class="zh">—— 进入公式</span></div>
         <div class="ps-sub-val" id="p-college-sub">—</div>
         <div class="ps-sub-val" id="s-college-sub">—</div>
       </div>
     </section>
 
     <section class="panel">
-      <h2>Step 4 — assessment rates</h2>
+      <h2><span class="en">Step 4 — assessment rates</span><span class="zh">第四步 —— 计入比例</span></h2>
       <div class="form-grid">
         <div class="field">
-          <label for="r-pi">Parent income &nbsp;<i>I</i> (%)</label>
+          <label for="r-pi"><span class="en">Parent income &nbsp;<i>I</i> (%)</span><span class="zh">家长收入 &nbsp;<i>I</i>（%）</span></label>
           <input type="number" id="r-pi" value="20" min="0" max="100" step="0.5">
         </div>
         <div class="field">
-          <label for="r-pa">Parent college asset &nbsp;<i>A</i> (%)</label>
+          <label for="r-pa"><span class="en">Parent college asset &nbsp;<i>A</i> (%)</span><span class="zh">家长计入资产 &nbsp;<i>A</i>（%）</span></label>
           <input type="number" id="r-pa" value="6" min="0" max="100" step="0.1">
         </div>
         <div class="field">
-          <label for="r-si">Student income &nbsp;<i>i</i> (%)</label>
+          <label for="r-si"><span class="en">Student income &nbsp;<i>i</i> (%)</span><span class="zh">学生收入 &nbsp;<i>i</i>（%）</span></label>
           <input type="number" id="r-si" value="50" min="0" max="100" step="0.5">
         </div>
         <div class="field">
-          <label for="r-sa">Student college asset &nbsp;<i>a</i> (%)</label>
+          <label for="r-sa"><span class="en">Student college asset &nbsp;<i>a</i> (%)</span><span class="zh">学生计入资产 &nbsp;<i>a</i>（%）</span></label>
           <input type="number" id="r-sa" value="20" min="0" max="100" step="0.5">
         </div>
         <div class="field">
-          <label for="r-cap">Home equity cap (× parent AGI)</label>
+          <label for="r-cap"><span class="en">Home equity cap (× parent AGI)</span><span class="zh">自住房净值上限（× 家长 AGI）</span></label>
           <input type="number" id="r-cap" value="2" min="0" max="20" step="0.1">
         </div>
       </div>
-      <p class="note">A student's dollars are assessed far harder than a parent's — which is why
-        who holds an asset matters as much as how much of it there is. The cap applies only at a
-        private school.</p>
+      <p class="note"><span class="en">A student's dollars are assessed far harder than a parent's — which is why who holds an asset matters as much as how much of it there is. The cap applies only at a private school.</span><span class="zh">学生名下的钱被计入的比例远高于家长 —— 所以资产由谁持有，和资产有多少同样重要。上限仅在私立学校适用。</span></p>
     </section>
 
     <section class="panel">
-      <h2>Step 5 — the result</h2>
+      <h2><span class="en">Step 5 — the result</span><span class="zh">第五步 —— 结果</span></h2>
 
       <p class="eq">
         <span class="efc">EFC</span> =
@@ -282,32 +280,22 @@
       <div class="tiles" id="result-tiles"></div>
 
       <div class="explain">
-        <h3>Worked out with your numbers</h3>
+        <h3><span class="en">Worked out with your numbers</span><span class="zh">用您的数字算一遍</span></h3>
         <div id="worked"></div>
       </div>
 
       <div class="explain">
-        <h3>The lever — what moving a dollar is worth</h3>
-        <p>Every dollar sitting in the college pool costs you its assessment rate, each year the
-          school looks. Move it to a pool that is never counted and that cost goes to zero. Because
-          the rates differ by owner, the same dollar is worth very different amounts:</p>
+        <h3><span class="en">The lever — what moving a dollar is worth</span><span class="zh">杠杆 —— 挪动一块钱值多少</span></h3>
+        <p><span class="en">Every dollar sitting in the college pool costs you its assessment rate, each year the school looks. Move it to a pool that is never counted and that cost goes to zero. Because the rates differ by owner, the same dollar is worth very different amounts:</span><span class="zh">放在计入池里的每一块钱，学校每审核一年就按其比例计入一次。把它挪到永不计入的池子，这个成本就归零。由于不同持有人的比例不同，同样一块钱的代价相差很大：</span></p>
         <table class="lever" id="lever-table"></table>
-        <p style="margin-top:12px">A <b>529</b> is the case where ownership does the work on its
-          own: it is normally reported as the <i>account owner's</i> asset, so a parent-owned plan
-          is assessed at the parent rate rather than the student's — the same balance, several
-          times cheaper. Confirm the treatment against the formula your schools use.</p>
-        <p style="margin-top:12px">Income is the harder one — <i>I</i> and <i>i</i> are assessed
-          at the highest rates of all, and unlike assets you cannot simply move them. That is why
-          the planning has to happen <b>before</b> the year the formula looks at, not after.</p>
+        <p style="margin-top:12px"><span class="en">A <b>529</b> is the case where ownership does the work on its own: it is normally reported as the <i>account owner's</i> asset, so a parent-owned plan is assessed at the parent rate rather than the student's — the same balance, several times cheaper. Confirm the treatment against the formula your schools use.</span><span class="zh"><b>529</b> 是“持有人本身就决定结果”的典型：它通常按<i>账户持有人</i>的资产申报，所以家长名下的计划按家长比例计入，而非学生比例 —— 同样的余额，代价低好几倍。请按您目标学校采用的公式确认处理方式。</span></p>
+        <p style="margin-top:12px"><span class="en">Income is the harder one — <i>I</i> and <i>i</i> are assessed at the highest rates of all, and unlike assets you cannot simply move them. That is why the planning has to happen <b>before</b> the year the formula looks at, not after.</span><span class="zh">收入更难处理 —— <i>I</i> 与 <i>i</i> 的计入比例最高，而且不像资产那样可以挪动。所以规划必须在公式审核的那一年<b>之前</b>完成，而不是之后。</span></p>
       </div>
 
-      <p class="note">One year at one school. Which assets fall on which side is not universal, so
-        set the categories, rates and cap to match the formula your schools actually use. Aid is
-        floored at zero: when EFC exceeds the cost of attendance there is no need-based award, and
-        a larger EFC does not create a bill beyond the cost.</p>
+      <p class="note"><span class="en">One year at one school. Which assets fall on which side is not universal, so set the categories, rates and cap to match the formula your schools actually use. Aid is floored at zero: when EFC exceeds the cost of attendance there is no need-based award, and a larger EFC does not create a bill beyond the cost.</span><span class="zh">这是单一学校、单一学年的测算。哪些资产落在哪一侧并无统一标准，请按您目标学校实际采用的公式设定分类、比例与上限。助学金以零为下限：当家庭预期供款超过就读总成本时，就不产生需求型助学金，而更高的供款也不会让账单超过总成本。</span></p>
     </section>
   </div>
 
-  <script src="js/tuition.js?v=d1fcf848"></script>
+  <script src="js/tuition.js?v=8cd21d2f"></script>
 </body>
 </html>
