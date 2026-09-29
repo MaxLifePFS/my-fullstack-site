@@ -308,6 +308,21 @@ table.data tr.hl td { background: color-mix(in srgb, var(--accent) 10%, transpar
 .note { color: var(--text-muted); font-size: 0.8rem; margin-top: 10px; }
 
 /* The one-line statement of what a calculator argues, under the page title */
+/* Bilingual pairs. Only pages that carry .en/.zh spans switch; everything
+   else is plain text and simply stays as written, so the calculators can be
+   translated one page at a time. */
+html[data-lang="en"] .zh { display: none; }
+html[data-lang="zh"] .en { display: none; }
+html:not([data-lang]) .zh { display: none; }
+
+.lang-toggle {
+  font-family: var(--font); font-size: .85rem; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface-1);
+  color: var(--text-secondary); border-radius: 8px; padding: 5px 12px;
+  cursor: pointer; margin-right: 8px;
+}
+.lang-toggle:hover { border-color: var(--accent); color: var(--text-primary); }
+
 .page-tagline {
   margin: -6px 0 22px;
   font-size: 1.02rem;

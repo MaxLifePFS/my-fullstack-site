@@ -52,3 +52,28 @@ function niceTicks(max, count) {
     });
   });
 })();
+
+/* Language toggle, mirroring the theme one: follows the stored choice, and only
+   wires up on pages that actually place a #lang-toggle button. Pages with no
+   .en/.zh spans are unaffected — their text is plain and stays visible. */
+(function initLang() {
+  const saved = localStorage.getItem("fincalc-lang");
+  document.documentElement.dataset.lang = saved === "zh" ? "zh" : "en";
+  document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("lang-toggle");
+    if (!btn) return;
+    const paint = () => {
+      const zh = document.documentElement.dataset.lang === "zh";
+      btn.textContent = zh ? "EN" : "中文";
+      btn.setAttribute("aria-label", zh ? "Switch to English" : "切换到中文");
+    };
+    paint();
+    btn.addEventListener("click", () => {
+      const next = document.documentElement.dataset.lang === "zh" ? "en" : "zh";
+      document.documentElement.dataset.lang = next;
+      localStorage.setItem("fincalc-lang", next);
+      paint();
+      document.dispatchEvent(new CustomEvent("langchange"));
+    });
+  });
+})();
