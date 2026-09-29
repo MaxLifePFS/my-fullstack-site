@@ -190,7 +190,6 @@
     </div>
     <button class="btn btn-line" id="todayBtn">Today</button>
     <span class="spacer"></span>
-    <button class="btn btn-line" id="refreshBtn">Refresh</button>
     <button class="btn btn-line" id="exportBtn">Download CSV</button>
     <button class="btn btn-accent" id="addBtn">+ New booking</button>
   </div>
@@ -198,7 +197,7 @@
   <div class="chart-card">
     <div class="chart-scroll" id="chart"></div>
   </div>
-  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule from any device, and updates from others appear within a minute (or click Refresh). Download a CSV backup now and then.</p>
+  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule from any device, and updates from others appear within a minute. Download a CSV backup now and then.</p>
 </div>
 
 <!-- Booking modal -->
@@ -347,7 +346,7 @@ async function loadFromServer() {
     bookings = list;
     hideBanner();
   } catch (e) {
-    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection and click Refresh.');
+    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection; this page keeps retrying every minute.');
   }
   render();
 }
@@ -697,7 +696,6 @@ $('prevBtn').addEventListener('click', () => { view.m--; if (view.m < 0) { view.
 $('nextBtn').addEventListener('click', () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderChart(); });
 $('todayBtn').addEventListener('click', () => { view = { y: now.getFullYear(), m: now.getMonth() }; renderChart(); });
 $('addBtn').addEventListener('click', () => openModal(null));
-$('refreshBtn').addEventListener('click', loadFromServer);
 
 // Column width is derived from the window, so lay the chart out again when it changes.
 let resizeTimer = null;
