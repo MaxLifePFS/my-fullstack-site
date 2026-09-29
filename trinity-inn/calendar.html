@@ -15,6 +15,10 @@
     --ink: #26251f; --muted: #6f6d63; --line: #e4dfd2;
     --today-bg: rgba(46, 93, 67, 0.09); --weekend: rgba(38, 37, 31, 0.035);
     --today-col: rgba(202, 138, 4, 0.30); --today-strong: #a16207;
+    /* Every booking is this one light green, matching the FlexStay calendar.
+       Ink is a near-black neutral, not a dark green: at ~12px a same-hue pair
+       reads muddy even at 7:1, and this separates on hue too (10.2:1). */
+    --booked: #4ade80; --booked-ink: #18181b;
     --danger: #a4432e;
     --font-serif: 'Lora', Georgia, serif; --font-sans: 'Inter', system-ui, sans-serif;
   }
@@ -25,7 +29,7 @@
   .topbar h1 { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 600; margin-right: auto; }
   .topbar img { width: 30px; height: 30px; border-radius: 6px; }
   .topbar .today-label { font-size: .85rem; opacity: .85; font-variant-numeric: tabular-nums; }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 16px 60px; }
+  .wrap { max-width: 1900px; margin: 0 auto; padding: 24px 20px 60px; }
 
   .btn { font-family: var(--font-sans); font-size: .88rem; font-weight: 600; padding: 8px 16px; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: opacity .15s; }
   .btn:disabled { opacity: .5; cursor: wait; }
@@ -42,7 +46,7 @@
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
   .chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; font-size: .86rem; }
   .chip strong { font-variant-numeric: tabular-nums; font-weight: 700; }
-  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--booked); border: 1px solid var(--booked-ink); }
 
   /* Toolbar */
   .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -54,7 +58,9 @@
 
   /* Tape chart */
   .chart-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
-  .chart-scroll { overflow-x: auto; }
+  /* Column width and type scale are recomputed on every render from the
+     available width (see sizeChart), so 2.5 months fit without scrolling. */
+  .chart-scroll { overflow-x: auto; --cell-w: 38px; --day-font: .85rem; --dow-font: .62rem; --bar-font: 1rem; --bar-pad: 10px; --today-dot: 22px; }
   /* min-width so each row spans its full track width: a row box clipped to the
      container width would paint its background short, leaving the last days of
      a long month as white text on white. */
@@ -62,9 +68,9 @@
   .room-cell { position: sticky; left: 0; z-index: 3; background: #fff; border-right: 1px solid var(--line); display: flex; align-items: center; padding: 0 14px; font-weight: 600; font-size: .9rem; white-space: nowrap; }
   .head .room-cell { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
   .day-head { grid-row: 1; text-align: center; padding: 7px 0 6px; border-left: 1px solid var(--line); font-variant-numeric: tabular-nums; }
-  .day-head .dow { display: block; font-size: .62rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
-  .day-head .num { display: block; font-size: .85rem; font-weight: 600; margin-top: 1px; }
-  .day-head.today .num { background: var(--today-strong); color: #fff; border-radius: 999px; width: 22px; line-height: 22px; margin: 1px auto 0; }
+  .day-head .dow { display: block; font-size: var(--dow-font); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .day-head .num { display: block; font-size: var(--day-font); font-weight: 600; margin-top: 1px; }
+  .day-head.today .num { background: var(--today-strong); color: #fff; border-radius: 999px; width: var(--today-dot); line-height: var(--today-dot); margin: 1px auto 0; }
   .body-row { border-top: 1px solid var(--line); height: 46px; }
   .day-cell { grid-row: 1; border-left: 1px solid var(--line); cursor: pointer; }
   .day-cell:hover { background: var(--today-bg); }
@@ -82,11 +88,25 @@
   .head .day-head.weekend { background: rgba(255, 255, 255, .06); }
   .head .day-head.today { background: var(--today-col); }
 
-  .bar { grid-row: 1; z-index: 2; align-self: center; height: 32px; margin: 0 2px; padding: 0 10px; border-radius: 8px; border: none; display: flex; align-items: center; overflow: hidden; color: #fff; font-size: .84rem; font-weight: 600; white-space: nowrap; cursor: pointer; text-align: left; font-family: var(--font-sans); }
-  .bar:hover { filter: brightness(1.12); }
+  .bar { grid-row: 1; z-index: 2; align-self: center; height: 32px; margin: 0 2px; padding: 0 var(--bar-pad); border-radius: 8px; border: none; display: flex; align-items: center; overflow: hidden; background: var(--booked); color: var(--booked-ink); font-size: var(--bar-font); font-weight: 700; white-space: nowrap; cursor: pointer; text-align: left; font-family: var(--font-sans); }
+  /* Deepen on hover -- brightening an already-light green washes it out. */
+  .bar:hover { filter: brightness(.94); }
   .bar.cut-left { border-top-left-radius: 0; border-bottom-left-radius: 0; margin-left: 0; }
   .bar.cut-right { border-top-right-radius: 0; border-bottom-right-radius: 0; margin-right: 0; }
-  .bar .cont { opacity: .75; font-weight: 400; margin: 0 4px; }
+  .bar .cont { opacity: .85; font-weight: 600; margin: 0 4px; }
+
+  /* Under ~17px a column has no room for both lines, so the weekday letter
+     goes and the date keeps the space (weekends still read from the shading). */
+  .chart-scroll.dense .day-head { padding: 10px 0 9px; }
+  .chart-scroll.dense .day-head .dow { display: none; }
+
+  /* Month names above the dates, matching the dark header band below them. */
+  .month-band { height: 24px; background: var(--ink); border-bottom: 1px solid rgba(255, 255, 255, .12); }
+  .month-band .room-cell { background: var(--ink); border-right-color: var(--ink); }
+  .month-band .mlabel { grid-row: 1; display: flex; align-items: center; justify-content: center; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: #fff; white-space: nowrap; overflow: hidden; }
+  /* Where one month hands over to the next. */
+  .day-cell.month-start { border-left: 2px solid var(--green); }
+  .head .day-head.month-start, .month-band .mlabel.month-start { border-left: 2px solid rgba(255, 255, 255, .55); }
 
   .hint { color: var(--muted); font-size: .84rem; margin: 12px 2px 0; }
   .banner { background: #fbeeea; border: 1px solid #e6c8bf; color: var(--danger); border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; font-size: .9rem; font-weight: 600; }
@@ -166,7 +186,6 @@
     </div>
     <button class="btn btn-line" id="todayBtn">Today</button>
     <span class="spacer"></span>
-    <button class="btn btn-line" id="refreshBtn">Refresh</button>
     <button class="btn btn-line" id="exportBtn">Download CSV</button>
     <button class="btn btn-green" id="addBtn">+ New booking</button>
   </div>
@@ -174,7 +193,7 @@
   <div class="chart-card">
     <div class="chart-scroll" id="chart"></div>
   </div>
-  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule, and updates from others appear within a minute (or click Refresh). Download a CSV backup now and then.</p>
+  <p class="hint">Click a booking bar to edit or check out a guest. Click any empty day cell to start a new booking for that room and date. Changes save to a shared database instantly — everyone with this link sees the same schedule, and updates from others appear within a minute. Download a CSV backup now and then.</p>
 </div>
 
 <!-- Booking modal -->
@@ -212,8 +231,6 @@
 
 <script>
 const ROOMS = ['Room 1', 'Room 2', 'Room 3', 'Room 4', 'Room 5', 'Room A', 'Room B', 'Room C'];
-const PALETTE = ['#2563eb', '#0d9488', '#d97706', '#dc2626', '#7c3aed',
-                 '#db2777', '#059669', '#b45309', '#4f46e5', '#0891b2'];
 
 // Bookings live in a shared Cloudflare D1 database behind /api/bookings, so
 // everyone with the link sees and edits the same schedule. The old per-browser
@@ -277,18 +294,9 @@ async function loadFromServer() {
     bookings = list;
     hideBanner();
   } catch (e) {
-    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection and click Refresh.');
+    showBanner('Cannot reach the booking database right now — showing nothing rather than stale data. Check your internet connection; this page keeps retrying every minute.');
   }
   render();
-}
-
-function guestColors() {
-  const order = [...bookings].sort((a, b) =>
-    a.checkIn < b.checkIn ? -1 : a.checkIn > b.checkIn ? 1 : a.guest.localeCompare(b.guest));
-  const map = {};
-  let i = 0;
-  for (const b of order) if (!(b.guest in map)) { map[b.guest] = PALETTE[i % PALETTE.length]; i++; }
-  return map;
 }
 
 function conflict(room, cin, cout, ignoreId) {
@@ -305,7 +313,6 @@ function renderChips() {
     .sort((a, b) => ROOMS.indexOf(a.room) - ROOMS.indexOf(b.room));
   const arrivals = bookings.filter(b => b.checkIn === todayStr).length;
   const departures = bookings.filter(b => b.checkOut === todayStr).length;
-  const colors = guestColors();
   const chips = $('chips');
   chips.innerHTML = '';
 
@@ -321,7 +328,6 @@ function renderChips() {
     c.className = 'chip';
     const dot = document.createElement('span');
     dot.className = 'dot';
-    dot.style.background = colors[b.guest];
     c.appendChild(dot);
     c.appendChild(document.createTextNode(b.room + ': ' + b.guest + ' (until ' +
       parse(b.checkOut).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ')'));
@@ -329,18 +335,97 @@ function renderChips() {
   }
 }
 
+// The tape chart always shows 2.5 months: the two whole months from the one in
+// view, then the first half of the next. A narrow screen scrolls the chart
+// sideways rather than showing a shorter span.
+const rangeMonths = 2.5;
+
+// Day columns stretch to fill the chart's width so the whole range fits on
+// screen. MIN_CELL is the narrowest column a two-digit date stays legible in;
+// below that the chart scrolls sideways rather than shrinking further.
+const MIN_CELL = 14, MAX_CELL = 80;
+
+function sizeChart(dayCount) {
+  const host = $('chart');
+  const avail = (host.clientWidth || document.documentElement.clientWidth) - 2;
+  const labelW = avail < 640 ? 84 : (dayCount > 40 ? 100 : 118);
+  const raw = (avail - labelW) / dayCount;
+  const cell = Math.round(Math.max(MIN_CELL, Math.min(MAX_CELL, raw)) * 100) / 100;
+  host.classList.toggle('dense', cell < 17);
+  const st = host.style;
+  st.setProperty('--cell-w', cell + 'px');
+  st.setProperty('--day-font', cell >= 30 ? '.85rem' : cell >= 25 ? '.78rem' : cell >= 21 ? '.72rem' : cell >= 17 ? '.66rem' : '.6rem');
+  st.setProperty('--dow-font', cell >= 26 ? '.62rem' : cell >= 21 ? '.56rem' : '.5rem');
+  st.setProperty('--bar-font', cell >= 30 ? '1rem' : cell >= 24 ? '.92rem' : cell >= 17 ? '.86rem' : '.78rem');
+  st.setProperty('--bar-pad', (cell >= 28 ? 10 : cell >= 20 ? 7 : 4) + 'px');
+  st.setProperty('--today-dot', Math.max(12, Math.min(22, cell - 4)) + 'px');
+  return { labelW: labelW, cell: cell };
+}
+
+function rangeLabel(days) {
+  const first = days[0], last = days[days.length - 1];
+  if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
+    return first.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  }
+  // A range that stops part-way through its last month says so.
+  const lastOfMonth = new Date(last.getFullYear(), last.getMonth() + 1, 0).getDate();
+  const partial = last.getDate() < lastOfMonth;
+  const sameYear = first.getFullYear() === last.getFullYear();
+  const startOpts = sameYear ? { month: 'short' } : { month: 'short', year: 'numeric' };
+  return first.toLocaleDateString(undefined, startOpts) + ' \u2013 ' + (partial ? 'mid-' : '') +
+    last.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
+
 function renderChart() {
   const { y, m } = view;
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const monthStart = fmt(new Date(y, m, 1));
-  const monthEndExcl = fmt(new Date(y, m + 1, 1));
-  const colors = guestColors();
-  const cols = '118px repeat(' + daysInMonth + ', 38px)';
 
-  $('monthLabel').textContent = new Date(y, m, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  // A fractional range (2.5) runs the whole months, then that share of the
+  // next one -- half of November, say.
+  const wholeMonths = Math.floor(rangeMonths), partMonth = rangeMonths - wholeMonths;
+  let rangeEndExcl = new Date(y, m + wholeMonths, 1);
+  if (partMonth > 0) {
+    rangeEndExcl = addDays(rangeEndExcl, Math.round(new Date(y, m + wholeMonths + 1, 0).getDate() * partMonth));
+  }
+
+  // One entry per visible day; everything below is positioned by index into
+  // this array, so the view can span any number of months.
+  const days = [];
+  for (let d = new Date(y, m, 1); d < rangeEndExcl; d = addDays(d, 1)) days.push(d);
+  const dayStr = days.map(fmt);
+  const idxOf = {};
+  dayStr.forEach((ds, i) => { idxOf[ds] = i; });
+  const firstStr = dayStr[0], lastStr = dayStr[dayStr.length - 1], endExclStr = fmt(rangeEndExcl);
+  const isMonthStart = (date, i) => i > 0 && date.getDate() === 1;
+
+  const size = sizeChart(days.length);
+  const cols = size.labelW + 'px repeat(' + days.length + ', ' + size.cell + 'px)';
+
+  $('monthLabel').textContent = rangeLabel(days);
 
   const chart = $('chart');
   chart.innerHTML = '';
+
+  // Month names, only worth a row when more than one month is on screen.
+  if (days[0].getMonth() !== days[days.length - 1].getMonth()) {
+    const band = document.createElement('div');
+    band.className = 'grid-row month-band';
+    band.style.gridTemplateColumns = cols;
+    const bcorner = document.createElement('div');
+    bcorner.className = 'room-cell';
+    band.appendChild(bcorner);
+    let i = 0;
+    while (i < days.length) {
+      let j = i;
+      while (j + 1 < days.length && days[j + 1].getMonth() === days[i].getMonth()) j++;
+      const lab = document.createElement('div');
+      lab.className = 'mlabel' + (i > 0 ? ' month-start' : '');
+      lab.style.gridColumn = (i + 2) + ' / span ' + (j - i + 1);
+      lab.textContent = days[i].toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      band.appendChild(lab);
+      i = j + 1;
+    }
+    chart.appendChild(band);
+  }
 
   const head = document.createElement('div');
   head.className = 'grid-row head';
@@ -349,14 +434,15 @@ function renderChart() {
   corner.className = 'room-cell';
   corner.textContent = 'Room';
   head.appendChild(corner);
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(y, m, d);
+  days.forEach((date, i) => {
     const cell = document.createElement('div');
-    cell.className = 'day-head' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') + (fmt(date) === todayStr ? ' today' : '');
-    cell.style.gridColumn = String(d + 1);
-    cell.innerHTML = '<span class="dow">' + date.toLocaleDateString(undefined, { weekday: 'narrow' }) + '</span><span class="num">' + d + '</span>';
+    cell.className = 'day-head' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') +
+      (dayStr[i] === todayStr ? ' today' : '') + (isMonthStart(date, i) ? ' month-start' : '');
+    cell.style.gridColumn = String(i + 2);
+    cell.innerHTML = '<span class="dow">' + date.toLocaleDateString(undefined, { weekday: 'narrow' }) +
+      '</span><span class="num">' + date.getDate() + '</span>';
     head.appendChild(cell);
-  }
+  });
   chart.appendChild(head);
 
   for (const room of ROOMS) {
@@ -369,30 +455,33 @@ function renderChart() {
     label.textContent = room;
     row.appendChild(label);
 
-    for (let d = 1; d <= daysInMonth; d++) {
-      const date = new Date(y, m, d);
-      const ds = fmt(date);
+    days.forEach((date, i) => {
+      const ds = dayStr[i];
       const cell = document.createElement('div');
-      cell.className = 'day-cell' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') + (ds === todayStr ? ' todaycol' : '');
-      cell.style.gridColumn = String(d + 1);
-      cell.title = room + ' · ' + human(ds);
+      cell.className = 'day-cell' + ([0, 6].includes(date.getDay()) ? ' weekend' : '') +
+        (ds === todayStr ? ' todaycol' : '') + (isMonthStart(date, i) ? ' month-start' : '');
+      cell.style.gridColumn = String(i + 2);
+      cell.title = room + ' \u00b7 ' + human(ds);
       cell.addEventListener('click', () => openModal(null, { room, checkIn: ds }));
       row.appendChild(cell);
-    }
+    });
 
-    for (const b of bookings.filter(b => b.room === room && b.checkIn < monthEndExcl && b.checkOut > monthStart)) {
-      const clippedStart = b.checkIn > monthStart ? parse(b.checkIn).getDate() : 1;
-      const lastNight = addDays(parse(b.checkOut), -1);
-      const clippedEnd = b.checkOut < monthEndExcl ? lastNight.getDate() : daysInMonth;
+    for (const b of bookings.filter(b => b.room === room && b.checkIn < endExclStr && b.checkOut > firstStr)) {
+      const cutLeft = b.checkIn < firstStr, cutRight = b.checkOut > endExclStr;
+      const lastNight = fmt(addDays(parse(b.checkOut), -1));
+      const si = cutLeft ? 0 : (idxOf[b.checkIn] !== undefined ? idxOf[b.checkIn] : 0);
+      const ei = lastNight > lastStr ? days.length - 1
+        : (idxOf[lastNight] !== undefined ? idxOf[lastNight] : days.length - 1);
+      if (ei < si) continue;
       const bar = document.createElement('button');
-      bar.className = 'bar' + (b.checkIn < monthStart ? ' cut-left' : '') + (b.checkOut > monthEndExcl ? ' cut-right' : '');
-      bar.style.gridColumn = (clippedStart + 1) + ' / span ' + (clippedEnd - clippedStart + 1);
-      bar.style.background = colors[b.guest];
+      bar.className = 'bar' + (cutLeft ? ' cut-left' : '') + (cutRight ? ' cut-right' : '');
+      bar.style.gridColumn = (si + 2) + ' / span ' + (ei - si + 1);
       const n = nightsBetween(b.checkIn, b.checkOut);
-      bar.title = b.guest + ' · ' + human(b.checkIn) + ' → ' + human(b.checkOut) + ' · ' + n + ' night' + (n === 1 ? '' : 's');
-      bar.innerHTML = (b.checkIn < monthStart ? '<span class="cont">&#8249;</span>' : '') +
+      bar.title = b.guest + ' \u00b7 ' + human(b.checkIn) + ' \u2192 ' + human(b.checkOut) +
+        ' \u00b7 ' + n + ' night' + (n === 1 ? '' : 's');
+      bar.innerHTML = (cutLeft ? '<span class="cont">&#8249;</span>' : '') +
         '<span>' + esc(b.guest) + '</span>' +
-        (b.checkOut > monthEndExcl ? '<span class="cont">&#8250;</span>' : '');
+        (cutRight ? '<span class="cont">&#8250;</span>' : '');
       bar.addEventListener('click', (e) => { e.stopPropagation(); openModal(b.id); });
       row.appendChild(bar);
     }
@@ -494,7 +583,13 @@ $('prevBtn').addEventListener('click', () => { view.m--; if (view.m < 0) { view.
 $('nextBtn').addEventListener('click', () => { view.m++; if (view.m > 11) { view.m = 0; view.y++; } renderChart(); });
 $('todayBtn').addEventListener('click', () => { view = { y: now.getFullYear(), m: now.getMonth() }; renderChart(); });
 $('addBtn').addEventListener('click', () => openModal(null));
-$('refreshBtn').addEventListener('click', loadFromServer);
+
+// Column width is derived from the window, so lay the chart out again when it changes.
+let resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(renderChart, 150);
+});
 
 // CSV in the same layout as the original Excel sheet: Date, Room 1 … Room C
 $('exportBtn').addEventListener('click', () => {
