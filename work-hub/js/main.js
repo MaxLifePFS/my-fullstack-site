@@ -29,7 +29,7 @@ const GROUPS = [
     icon: '🏡',
     links: [
       { name: 'Trinity Ranch Room Calendar', url: 'https://trinity.maxlife.cc/calendar' },
-      { name: 'FlexStay Room Calendar', url: 'https://maxlife.cc/flexstay', host: 'flexstay.maxlife.cc' },
+      { name: 'FlexStay Room Calendar', url: 'https://flexstay.maxlife.cc/calendar' },
       { name: 'Realty Invest', url: 'https://learn.yongmingu.com/' },
       { name: 'Chase Bank Trinity', url: 'https://secure.chase.com/web/auth/dashboard#/dashboard/overview' },
       { name: 'Nanxiang 南翔', url: 'https://sites.google.com/view/bao-all' },
