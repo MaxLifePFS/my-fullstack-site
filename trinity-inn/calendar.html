@@ -43,10 +43,9 @@
   .hidden { display: none !important; }
 
   /* Chips */
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-  .chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; font-size: .86rem; }
-  .chip strong { font-variant-numeric: tabular-nums; font-weight: 700; }
-  .chip .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--booked); border: 1px solid var(--booked-ink); }
+  /* Occupancy at a glance, in place of the old per-room chips. */
+  .rooms-pill { display: inline-flex; align-items: baseline; gap: 8px; margin-bottom: 18px; padding: 9px 20px; border-radius: 10px; background: var(--green); color: #fff; font-family: var(--font-sans); font-size: .95rem; font-weight: 600; }
+  .rooms-pill .n { font-weight: 400; opacity: .82; font-size: .82rem; font-variant-numeric: tabular-nums; }
 
   /* Toolbar */
   .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
@@ -176,7 +175,7 @@
   </div>
 
   <div class="banner hidden" id="errBanner"></div>
-  <div class="chips" id="chips"></div>
+  <div class="rooms-pill" id="roomsPill"></div>
 
   <div class="toolbar">
     <div class="month-nav">
@@ -304,35 +303,16 @@ function conflict(room, cin, cout, ignoreId) {
 }
 
 function render() {
-  renderChips();
+  renderSummary();
   renderChart();
 }
 
-function renderChips() {
-  const inHouse = bookings.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut)
-    .sort((a, b) => ROOMS.indexOf(a.room) - ROOMS.indexOf(b.room));
-  const arrivals = bookings.filter(b => b.checkIn === todayStr).length;
-  const departures = bookings.filter(b => b.checkOut === todayStr).length;
-  const chips = $('chips');
-  chips.innerHTML = '';
-
-  const stat = document.createElement('span');
-  stat.className = 'chip';
-  const occupiedRooms = new Set(inHouse.map(b => b.room)).size;
-  stat.innerHTML = 'Tonight: <strong>' + occupiedRooms + ' of ' + ROOMS.length + '</strong>&nbsp;rooms occupied · ' +
-    arrivals + ' arrival' + (arrivals === 1 ? '' : 's') + ' · ' + departures + ' departure' + (departures === 1 ? '' : 's');
-  chips.appendChild(stat);
-
-  for (const b of inHouse) {
-    const c = document.createElement('span');
-    c.className = 'chip';
-    const dot = document.createElement('span');
-    dot.className = 'dot';
-    c.appendChild(dot);
-    c.appendChild(document.createTextNode(b.room + ': ' + b.guest + ' (until ' +
-      parse(b.checkOut).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ')'));
-    chips.appendChild(c);
-  }
+function renderSummary() {
+  // Count rooms, not bookings: a room with two stays meeting today is still
+  // one occupied room.
+  const inHouse = bookings.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut);
+  const occupied = new Set(inHouse.map(b => b.room)).size;
+  $('roomsPill').innerHTML = 'All Rooms<span class="n">' + occupied + '/' + ROOMS.length + ' tonight</span>';
 }
 
 // The tape chart always shows 2.5 months: the two whole months from the one in
