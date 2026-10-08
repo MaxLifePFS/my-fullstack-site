@@ -312,7 +312,11 @@ function renderSummary() {
   // one occupied room.
   const inHouse = bookings.filter(b => b.checkIn <= todayStr && todayStr < b.checkOut);
   const occupied = new Set(inHouse.map(b => b.room)).size;
-  $('roomsPill').innerHTML = 'All Rooms<span class="n">' + occupied + '/' + ROOMS.length + ' tonight</span>';
+  const arrivals = bookings.filter(b => b.checkIn === todayStr).length;
+  const departures = bookings.filter(b => b.checkOut === todayStr).length;
+  $('roomsPill').innerHTML = 'All Rooms<span class="n">' + occupied + '/' + ROOMS.length + ' tonight \u00b7 ' +
+    arrivals + ' arrival' + (arrivals === 1 ? '' : 's') + ' \u00b7 ' +
+    departures + ' departure' + (departures === 1 ? '' : 's') + '</span>';
 }
 
 // The tape chart always shows 2.5 months: the two whole months from the one in
