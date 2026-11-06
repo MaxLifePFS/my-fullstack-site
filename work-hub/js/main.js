@@ -99,7 +99,8 @@ const GROUPS = [
       { name: 'World Clock', url: 'https://www.timeanddate.com/worldclock/personal.html' },
       { name: 'LinkedIn', url: 'https://linkedin.com/in/timmybao' },
       { name: 'Facebook', url: 'https://facebook.com/tianming.bao' },
-      { name: 'Wikipedia — Personal Finance', url: 'https://en.wikipedia.org/wiki/Personal_finance' }
+      { name: 'Wikipedia — Personal Finance', url: 'https://en.wikipedia.org/wiki/Personal_finance' },
+      { name: 'WhatsApp', url: 'https://web.whatsapp.com/' }
     ]
   }
 ];
