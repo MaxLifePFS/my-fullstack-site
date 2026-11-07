@@ -95,6 +95,8 @@ const GROUPS = [
       { name: 'iCloud', url: 'https://www.icloud.com/' },
       { name: 'ChatGPT', url: 'https://chatgpt.com' },
       { name: 'MUSE', url: 'https://muse.ai' },
+      // claude:// is the protocol the Claude desktop app registers; it opens the app, not a website
+      { name: 'Claude', url: 'claude://', host: 'Desktop app' },
       { name: 'QQ Mail', url: 'https://wx.mail.qq.com/' },
       { name: 'Expensify', url: 'https://www.expensify.com/reports' },
       { name: 'World Clock', url: 'https://www.timeanddate.com/worldclock/personal.html' },
@@ -130,17 +132,20 @@ GROUPS.forEach((g) => {
   g.links.forEach((l) => {
     const a = document.createElement('a');
     a.className = 'tile';
+    const isWeb = /^https?:/i.test(l.url);
     a.href = l.url;
-    a.target = '_blank';
-    a.rel = 'noopener';
+    if (isWeb) { a.target = '_blank'; a.rel = 'noopener'; }
     a.dataset.search = (l.name + ' ' + g.title + ' ' + l.url).toLowerCase();
     const letter = l.name.replace(/[^A-Za-z0-9一-鿿]/g, '').charAt(0).toUpperCase() || '•';
     a.innerHTML =
-      '<span class="tile-icon"><img src="' + faviconFor(l.url) + '" alt="" loading="lazy"><i>' + letter + '</i></span>' +
+      '<span class="tile-icon">' + (isWeb ? '<img src="' + faviconFor(l.url) + '" alt="" loading="lazy">' : '') + '<i>' + letter + '</i></span>' +
       '<span class="tile-name">' + l.name + '</span>' +
       '<span class="tile-host">' + (l.host || new URL(l.url).hostname.replace('www.', '')) + '</span>';
-    a.querySelector('img').addEventListener('error', function () { this.style.display = 'none'; });
-    a.querySelector('img').addEventListener('load', function () { this.nextElementSibling.style.display = 'none'; });
+    const icon = a.querySelector('img');
+    if (icon) {
+      icon.addEventListener('error', function () { this.style.display = 'none'; });
+      icon.addEventListener('load', function () { this.nextElementSibling.style.display = 'none'; });
+    }
     grid.appendChild(a);
   });
   if (g.links.length === 0 && g.note) {
