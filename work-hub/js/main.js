@@ -94,6 +94,7 @@ const GROUPS = [
       { name: 'OneDrive', url: 'https://onedrive.live.com/' },
       { name: 'iCloud', url: 'https://www.icloud.com/' },
       { name: 'ChatGPT', url: 'https://chatgpt.com' },
+      { name: 'MUSE', url: 'https://muse.ai' },
       { name: 'QQ Mail', url: 'https://wx.mail.qq.com/' },
       { name: 'Expensify', url: 'https://www.expensify.com/reports' },
       { name: 'World Clock', url: 'https://www.timeanddate.com/worldclock/personal.html' },
