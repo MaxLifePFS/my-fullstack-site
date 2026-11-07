@@ -103,7 +103,9 @@ const GROUPS = [
       { name: 'LinkedIn', url: 'https://linkedin.com/in/timmybao' },
       { name: 'Facebook', url: 'https://facebook.com/tianming.bao' },
       { name: 'Wikipedia — Personal Finance', url: 'https://en.wikipedia.org/wiki/Personal_finance' },
-      { name: 'WhatsApp', url: 'https://web.whatsapp.com/' }
+      { name: 'WhatsApp', url: 'https://web.whatsapp.com/' },
+      // weixin:// only works once the WeChat desktop app has registered it with Windows (it has not by default)
+      { name: 'WeChat', url: 'weixin://', host: 'Desktop app' }
     ]
   }
 ];
