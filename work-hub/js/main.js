@@ -13,7 +13,7 @@ const GROUPS = [
       { name: 'MaxLife Academy', url: 'https://maxlife.cc' },
       { name: 'ACN Essential Services', url: 'https://pfs.acnibo.com/us-en/services' },
       { name: 'ACN IBO Portal', url: 'https://myacn.my.site.com/ACNIBO/s/login/?language=en_US' },
-      { name: 'NS', url: 'https://www.nsfed.app' },
+      { name: 'NS', url: 'https://app.nsfed.com/' },
       { name: 'NLG New Business', url: 'https://www.nationallife.com/agent/book-of-business/new-business/all-new-business-cases' },
       { name: 'F&G SalesLink', url: 'https://saleslink.fglife.com/' },
       { name: 'Athene Producer', url: 'https://www.athene.com/producer/login' },
